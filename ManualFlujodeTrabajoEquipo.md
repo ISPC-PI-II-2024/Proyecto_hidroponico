@@ -8,11 +8,11 @@ Organizar el desarrollo colaborativo de hardware y software usando un flujo de t
 
 ## 🌳 Estructura de ramas
 
-| Rama         | Propósito                                                          |
-|--------------|--------------------------------------------------------------------|
-| `main`       | Versión **estable y lista** para producción o entrega final.       |
-| `develop`    | Versión de desarrollo que reúne cambios funcionales para testeo.   |
-| `feature-*`  | Ramas individuales de cada integrante o para tareas específicas.   |
+| Rama             | Propósito                                                          |
+|------------------|--------------------------------------------------------------------|
+| `main`           | Versión **estable y lista** para producción o entrega final.       |
+| `development`    | Versión de desarrollo que reúne cambios funcionales para testeo.   |
+| `feature-*`      | Ramas individuales de cada integrante o para tareas específicas.   |
 
 Ejemplos:
 - `feature-julian-sensorXXX`
@@ -28,8 +28,8 @@ Ejemplos:
 ```bash
 git clone https://github.com/usuario/repositorio.git
 cd repositorio
-git checkout develop
-git pull origin develop
+git checkout development
+git pull origin development
 git checkout -b feature-tu-nombre
 ```
 
@@ -53,13 +53,13 @@ git push origin feature-tu-nombre
 
 ---
 
-### 4. Merge a `develop`
+### 4. Merge a `development`
 
 - Se hace cuando el PR está aprobado y los cambios funcionan correctamente.
 
 ---
 
-### 5. Cuando `develop` está listo → Merge a `main`
+### 5. Cuando `development` está listo → Merge a `main`
 
 - Esto lo realiza el profe o la persona encargada.
 - Sucede cuando se entrega una versión final o estable.
@@ -68,15 +68,15 @@ git push origin feature-tu-nombre
 
 ## 🧹 Buenas prácticas
 
-- Antes de subir cambios, sincronizá con `develop`:
+- Antes de subir cambios, sincronizá con `development`:
   ```bash
-  git checkout develop
-  git pull origin develop
+  git checkout development
+  git pull origin development
   git checkout feature-tu-nombre
-  git merge develop
+  git merge development
   ```
 
-- No trabajar directamente sobre `main` ni `develop`.
+- No trabajar directamente sobre `main` ni `development`.
 - Usar nombres descriptivos en los commits y las ramas.
 - Mantener carpetas organizadas (`/hardware`, `/software`, `/docs`).
 - Comentar el código y documentar lo importante.
