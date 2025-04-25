@@ -1,0 +1,22 @@
+
+This directory is intended for PlatformIO Test Runner and project tests.
+
+Unit Testing is a software testing method by which individual units of
+source code, sets of one or more MCU program modules together with associated
+control data, usage procedures, and operating procedures, are tested to
+determine whether they are fit for use. Unit testing finds problems early
+in the development cycle.
+
+More information about PlatformIO Unit Testing:
+- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
+
+# Test de Unidad - Caudalímetro
+
+Este archivo realiza pruebas unitarias para funciones matemáticas relacionadas con el caudalímetro de efecto Hall.
+
+## ¿Qué se testea?
+
+Se prueban dos funciones matemáticas ubicadas en `lib/Caudalimetro`:
+
+- `calcularCaudal(pulsos, factor, intervaloSegundos)`: calcula el caudal en litros por minuto a partir del número de pulsos registrados, un factor de calibración y el intervalo de tiempo.
+- `calcularVolumen(pulsos, factor)`: calcula el volumen total en litros a partir del número de pulsos y un factor de calibración.
