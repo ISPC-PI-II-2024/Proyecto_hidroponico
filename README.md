@@ -39,7 +39,7 @@ El objetivo es construir una solución inteligente, ecológica y accesible que c
 | Joaquin Zalazar              | [@breaakerr](https://github.com/breaakerr) |
 | Diego Ares                   | [@diegote7](https://github.com/diegote7) |
 | Paola Pantoja                | [@PaolaaPantoja](https://github.com/PaolaaPantoja) |
-
+| Nicolás Barrionuevo          | [@NicolasB-27](https://github.com/NicolasB-27) |
 ---
 
 ## 🚀 Tecnologías
