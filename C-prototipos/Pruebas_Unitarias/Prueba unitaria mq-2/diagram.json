@@ -1,0 +1,34 @@
+{
+    "version": 1,
+    "author": "Nahuel Velez",
+    "editor": "wokwi",
+    "parts": [
+      { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 86.4, "left": 139.24, "attrs": {} },
+      { "type": "wokwi-gas-sensor", "id": "gas1", "top": 50.7, "left": -300.2, "attrs": {} },
+      {
+        "type": "wokwi-led",
+        "id": "led1",
+        "top": 178.8,
+        "left": -207.4,
+        "attrs": { "color": "red" }
+      },
+      {
+        "type": "wokwi-resistor",
+        "id": "r1",
+        "top": 272.75,
+        "left": -124.8,
+        "attrs": { "value": "220" }
+      }
+    ],
+    "connections": [
+      [ "esp:TX", "$serialMonitor:RX", "", [] ],
+      [ "esp:RX", "$serialMonitor:TX", "", [] ],
+      [ "esp:34", "gas1:AOUT", "green", [ "h-230.25", "v-86.4" ] ],
+      [ "esp:3V3", "gas1:VCC", "green", [ "h-172.65", "v-19.2" ] ],
+      [ "esp:GND.1", "gas1:GND", "black", [ "h-259.05", "v-86.4" ] ],
+      [ "esp:13", "r1:2", "green", [ "h-191.85", "v28.8" ] ],
+      [ "r1:1", "led1:A", "green", [ "v0", "h-57.6", "v-48" ] ],
+      [ "esp:GND.1", "led1:C", "black", [ "h-153.45", "v86.4", "h-192" ] ]
+    ],
+    "dependencies": {}
+  }
