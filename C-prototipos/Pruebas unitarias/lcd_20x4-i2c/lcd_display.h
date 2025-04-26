@@ -1,33 +1,22 @@
-#ifndef LCD_DISPLAY_H
-#define LCD_DISPLAY_H
+#ifndef lcd_display_h
+#define lcd_display_h
 
-#include <stdint.h>
-#include <string>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 
-// Define la dirección I2C y las dimensiones del LCD (puedes modificarlas aquí)
-#define LCD_ADDRESS 0x27
+// Definiciones para la dirección I2C y las dimensiones del LCD
+#define LCD_ADDRESS 0x27 // O puedes usar 0x3F si tu módulo es diferente
 #define LCD_COLUMNS 20
 #define LCD_ROWS 4
 
-/// Se llama en el setup() - Inicializa el LCD
-void lcdBegin();
+class LcdDisplay : public LiquidCrystal_I2C {
+public:
+  LcdDisplay();
+  void iniciar();
+  void mostrarLinea(uint8_t numeroLinea, const char* mensaje);
+  void borrarLinea(uint8_t numeroLinea);
+  void encenderDisplay();
+  void apagarDisplay();
+};
 
-/// Se llama para escribir texto en una posición específica (columna, fila).
-void lcdSetCursor(uint8_t col, uint8_t row);
-void lcdPrint(const char* text);
-void lcdPrint(const std::string& text);
-
-/// Se llama para escribir una línea completa (comenzando desde la columna 0).
-void lcdWriteLine(uint8_t row, const char* text);
-void lcdWriteLine(uint8_t row, const std::string& text);
-
-/// Se llama para borrar completamente la pantalla LCD.
-void lcdClear();
-
-/// Se llama para encender la luz de fondo.
-void lcdBacklight();
-
-/// Se llama para apagar la luz de fondo.
-void lcdNoBacklight();
-
-#endif // LCD_DISPLAY_H
+#endif

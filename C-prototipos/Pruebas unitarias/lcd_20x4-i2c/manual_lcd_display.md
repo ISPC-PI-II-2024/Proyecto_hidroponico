@@ -1,4 +1,4 @@
-# Manual de Uso Simplificado de la Librería lcd_display para ESP32 y LCD 20x4 I2C
+# Manual de uso de la librería lcd_display para ESP32 y LCD 20x4 I2C
 
 Este manual describe cómo utilizar la librería `lcd_display` para controlar una pantalla LCD 20x4 que se comunica a través del protocolo I2C con una placa ESP32.
 
@@ -15,7 +15,9 @@ Este manual describe cómo utilizar la librería `lcd_display` para controlar un
 
 ### 1. Incluir la Librería
 
-En la parte superior de tu archivo principal, incluye el archivo de encabezado de la librería:
+En la parte superior de tu archivo principal, incluye el archivo de encabezado de las librerias:
 
 ```cpp
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 #include "lcd_display.h"
