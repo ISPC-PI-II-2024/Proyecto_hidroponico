@@ -20,8 +20,9 @@ void test_inicializacion_sensor() {
 
 // Prueba para verificar la adquisición de datos del sensor
 void test_adquisicion_datos() {
-    corriente = analogRead(sensorPin) * (3.3 / 4095.0) / R;
-    voltaje = analogRead(sensorPin) * (3.3 / 4095.0);
+    int sensorValue = analogRead(sensorPin);
+    corriente = sensorValue * (3.3 / 4095.0) / R;
+    voltaje = sensorValue * (3.3 / 4095.0);
 
     // Verifica que los valores estén dentro de un rango esperado
     TEST_ASSERT_GREATER_OR_EQUAL(0.0, corriente);
