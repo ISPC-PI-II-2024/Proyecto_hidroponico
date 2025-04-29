@@ -48,6 +48,18 @@ Este proyecto utiliza un ESP32-S3 DevKitM-1 para medir el consumo de energía en
    pio device monitor
    ```
 
+## Ejecución de Pruebas Unitarias
+
+Para ejecutar las pruebas unitarias del proyecto, sigue los pasos a continuación:
+
+1. Asegúrate de que el sensor esté conectado al pin especificado en el código (`36`).
+2. Abre una terminal en la raíz del proyecto.
+3. Ejecuta el siguiente comando para compilar y ejecutar las pruebas:
+   ```bash
+      pio test -e esp32-s3-devkitm-1
+      ```
+   4. Observa los resultados en el monitor serial. Si el sensor no está presente, se notificará la falla en la consola.
+
 ## Simulación en [Wokwi](https://wokwi.com/projects/429326475435077633)
 1. Abre el archivo `diagram.json` en el simulador Wokwi.
 2. Verifica que el firmware esté configurado correctamente en `wokwi.toml`.
