@@ -189,3 +189,4 @@ void loop() {
 | Valores erráticos o inestables       | Interferencias o eco múltiple               | Aumentar intervalo o filtrar múltiples lecturas                             |
 | Sensor sin respuesta                  | Error físico o incorrecta inicialización    | Revisar pines, soldaduras y estado del sensor                               |
 
+

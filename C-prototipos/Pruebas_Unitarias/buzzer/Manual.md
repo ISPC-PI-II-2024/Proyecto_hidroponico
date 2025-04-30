@@ -1,3 +1,4 @@
+
 ### MANUAL
 
 ## 📌 Descripción
@@ -184,3 +185,4 @@ void loop() {
 | Patrón de sonido constante         | `_isOn` nunca cambia porque `update()` no se llama | Asegurarse de llamar a `buzzer.update()` en cada `loop()`      |
 | Alertas no varían                  | `setLevel()` no invocado o nivel inválido | Revisar la lógica de cambio de niveles en `loop()`            |
 | Ruido o clics no deseados          | Frecuencias altas o duraciones muy cortas | Ajustar valores en `params[]` según el buzzer utilizado        |
+
