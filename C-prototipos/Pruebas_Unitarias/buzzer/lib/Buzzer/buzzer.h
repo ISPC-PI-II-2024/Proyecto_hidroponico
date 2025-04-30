@@ -19,11 +19,12 @@ public:
   void update();                   // Llamar en loop(): sin bloqueo
 
 private:
-  static constexpr struct {
-    uint16_t freq;
-    uint16_t onDur;
-    uint16_t offDur;
+  static const struct {
+  uint16_t freq;
+  uint16_t onDur;
+  uint16_t offDur;
   } params[4];
+
 
   uint8_t       _pin;
   AlarmLevel    _level;
