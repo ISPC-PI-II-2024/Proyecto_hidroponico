@@ -1,36 +1,44 @@
 #include <Arduino.h>
 #include "buzzer.h"
 
-static const uint8_t BUZZER_PIN       = 15;
-static const unsigned long INTERVAL   = 5000; // Cambia nivel cada 5 s
+static const uint8_t BUZZER_PIN = 15;
 
 Buzzer buzzer(BUZZER_PIN);
-AlarmLevel levels[] = { A_LOW, A_MEDIUM, A_HIGH, A_NONE };
-size_t      idx     = 0;
-unsigned long lastChange = 0;
+AlarmLevel currentLevel = A_NONE;
 
 void setup() {
   Serial.begin(115200);
   while (!Serial);
-  
+
   buzzer.begin();
-  buzzer.setLevel(levels[idx]);
+  buzzer.setLevel(currentLevel);
   Serial.println("=== Prueba Buzzer iniciada ===");
+  Serial.println("Ingrese: bajo | medio | alto");
 }
 
 void loop() {
   // 1) Actualizo estado del buzzer
   buzzer.update();
 
-  // 2) Cada INTERVAL cambio nivel de alarma y lo muestro
-  unsigned long now = millis();
-  if (now - lastChange >= INTERVAL) {
-    idx = (idx + 1) % (sizeof(levels)/sizeof(levels[0]));
-    buzzer.setLevel(levels[idx]);
+  // 2) Verifico si hay datos en el puerto serial
+  if (Serial.available()) {
+    String input = Serial.readStringUntil('\n');
+    input.trim();  // Elimina espacios y saltos de línea
 
-    Serial.print("Nivel de alarma: ");
-    Serial.println(idx);  // 0=None,1=Low,2=Med,3=High
+    // 3) Actualizo el nivel de alarma según la entrada por consola
+    if (input.equalsIgnoreCase("bajo")) {
+      currentLevel = A_LOW;
+    } else if (input.equalsIgnoreCase("medio")) {
+      currentLevel = A_MEDIUM;
+    } else if (input.equalsIgnoreCase("alto")) {
+      currentLevel = A_HIGH;
+    } else {
+      currentLevel = A_NONE;
+    }
 
-    lastChange = now;
+    buzzer.setLevel(currentLevel);
+    Serial.print("Nivel de alarma actualizado: ");
+    Serial.println(input);
   }
 }
+
