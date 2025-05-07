@@ -1,4 +1,4 @@
-#include <Arduino.h>  // Asegúrate de que las funciones de Arduino estén disponibles
+#include <Arduino.h>  
 
 class LED {
 public:
