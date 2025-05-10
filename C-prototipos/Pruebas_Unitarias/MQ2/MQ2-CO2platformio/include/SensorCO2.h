@@ -14,8 +14,13 @@
 #define BOARD               F("ESP32")  // Identificador de la placa
 #define VCC                 3.3f        // Voltaje de alimentación (V)
 #define RL_KOHM             10.0f       // Resistencia de carga en kilo-ohmios (kΩ)
-#define ADC_RES             4095        // Resolución ADC del ESP32 (12 bits)
-#define RATIO_MQ2_CLEAN_AIR 9.8f        // Rs/Ro en aire limpio según datasheet
+#define ADC_RES             12          // Resolución ADC del ESP32 (12 bits = 4095)
+#define RATIO_CLEAN_AIR     9.8f        // Rs/Ro en aire limpio según datasheet
+#define CALIB_DELAY_MS      2000          // Tiempo de espera para estabilizar el sensor (ms)
+
+// Por suerte la configuracion para el MQ135 es simple, comentar y descomentar lo siguiente
+//#define RATIO_CLEAN_AIR     3.8f 
+//#define RL_KOHM             20.0f
 
 class SensorCO2 {
 public:
@@ -30,7 +35,7 @@ public:
 private:
     int sensorPin;
     float Ro;                           // Resistencia en aire limpio (kΩ)
-    MQUnifiedsensor mq2;                // Objeto de la librería MQUnifiedsensor para el sensor MQ2
+    MQUnifiedsensor mq;                // Objeto de la librería MQUnifiedsensor para el sensor MQ sea el 2, o el 135
 };
 
 #endif 

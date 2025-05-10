@@ -2,7 +2,7 @@
 #include "SensorCO2.h"
 
 #ifndef SENSORGAS_PIN
-#define SENSORGAS_PIN 18
+#define SENSORGAS_PIN 15 
 #endif
 
 SensorCO2 co2Sensor(SENSORGAS_PIN);
@@ -10,7 +10,7 @@ SensorCO2 co2Sensor(SENSORGAS_PIN);
 void setup() {
     Serial.begin(115200);
     delay(100);
-    Serial.println("=== Iniciando lectura de CO2 con MQ2 ===");
+    Serial.println("=== Iniciando lectura de CO2 con MQ ===");
     co2Sensor.begin();
 }
 
