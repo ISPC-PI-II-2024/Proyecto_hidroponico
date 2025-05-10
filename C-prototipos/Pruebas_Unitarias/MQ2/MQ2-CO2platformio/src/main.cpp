@@ -1,13 +1,29 @@
-// main.cpp
 #include <Arduino.h>
-#include "lcd.h"
+#include "SensorCO2.h"
 
-// Función de configuración del microcontrolador
+#ifndef SENSORGAS_PIN
+#define SENSORGAS_PIN 18
+#endif
+
+SensorCO2 co2Sensor(SENSORGAS_PIN);
+
 void setup() {
-    setupLCD();  // Llama a la función de configuración del LCD
+    Serial.begin(115200);
+    delay(100);
+    Serial.println("=== Iniciando lectura de CO2 con MQ2 ===");
+    co2Sensor.begin();
 }
 
-// Función de bucle que se ejecuta continuamente
 void loop() {
-    loopLCD();   // Llama al bucle de la pantalla LCD
+    int raw    = co2Sensor.readRaw();
+    float rs   = co2Sensor.readResistance();
+    float ratio= co2Sensor.readRatio();
+    float ppm  = co2Sensor.readPPM();
+
+    Serial.print("Lectura analogica: ");     Serial.print(raw);
+    Serial.print("  Resistencia Sensor: ");  Serial.print(rs, 2);    Serial.print(" kΩ");
+    Serial.print("  Relacion Rs/Ro: ");      Serial.print(ratio, 3);
+    Serial.print("  CO2 PPM: ");             Serial.println(ppm, 1);
+
+    delay(1000);
 }
