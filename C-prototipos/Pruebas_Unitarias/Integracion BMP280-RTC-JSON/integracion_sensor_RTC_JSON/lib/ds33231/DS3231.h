@@ -1,5 +1,5 @@
-#ifndef DS3231_H
-#define DS3231_H
+#ifndef DS3231_RTC_H
+#define DS3231_RTC_H
 
 #include <RTClib.h>
 
