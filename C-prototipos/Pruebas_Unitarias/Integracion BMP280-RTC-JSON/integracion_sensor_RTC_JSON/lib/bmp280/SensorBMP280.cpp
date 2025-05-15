@@ -5,12 +5,13 @@ SensorBMP280::SensorBMP280() {
 }
 
 bool SensorBMP280::begin() {
-  if (!bmp.begin(0x76)) { // Dirección I2C puede ser 0x76 o 0x77
+  if (!bmp.begin(0x76)) {
       Serial.println("Error: No se encontró el sensor BMP280. Verifica las conexiones!");
-      while (1);
+      status = false;
+      return false;
   }
   status = true;
-  return status;
+  return true;
 }
 
 

@@ -109,29 +109,40 @@ Una vez conectado a WiFi, se puede sincronizar la hora utilizando el método sin
 ### Código básico para sincronizar la hora:
 
 ```cpp
+#include <Arduino.h>
 #include "DS3231.h"
 #include "WiFiManager.h"
 
 WiFiManager wifi;
-
 DS3231Clock reloj;
+
+unsigned long Ultima_muestra = 0;
+const unsigned long Intervalo_muestra = 2000;
 
 void setup() {
   Serial.begin(9600);
-  wifi.conectar();   //Nos conectamos a WiFi
-  reloj.begin();  
 
-  if (wifi.estaConectado()) {  
+  wifi.conectar();
+  reloj.begin();
 
-    reloj.sincronizarConNTP();  
-
-  } // Setear hora con servidor NTP
-}  
+  if (wifi.estaConectado()) {
+    reloj.sincronizarConNTP();
+  } else {
+    Serial.println("No hay conexión WiFi, no se sincronizará con NTP.");
+  }
+}
 
 void loop() {
-  Serial.println(reloj.getTimeString());
-  delay(2000);
+  unsigned long Millis_actual = millis();
+
+  if (Millis_actual - Ultima_muestra >= Intervalo_muestra) {
+    Ultima_muestra = Millis_actual;
+
+    String hora = reloj.getTimeString();
+    Serial.println(hora);
+  }
 }
+
 ```  
 
 Este proceso:
@@ -148,14 +159,53 @@ Este proceso:
 
 Con estos pasos el RTC obtiene la hora mundial, y puede usarse incluso sin conexión después.
 
-## ⚙️ Funciones disponibles  
+## ⚙️ Métodos disponibles
+`DS3231Clock()`  
+Constructor. Crea un objeto RTC sin iniciarlo aún.
+
+`void begin()`  
+Inicializa el módulo DS3231. Debe llamarse en setup(). También verifica si el RTC perdió alimentación.
+
+`void setDateTime(int year, int month, int day, int hour, int minute, int second)`  
+Establece la fecha y hora manualmente.
+
+Ejemplo:
+
+```cpp
   
-| Método     | Descripción       |
-|------------|--------------|
-|begin()        | Inicializa el RTC.    |
-| getHora()       | Devuelve un objeto DateTime con la hora actual.         |
-| setHora(DateTime nuevaHora)       | Ajusta manualmente la hora. |
-|sincronizarConNTP()        | Sincroniza con la hora de internet (requiere conexión WiFi). |   
+reloj.setDateTime(2025, 5, 15, 12, 30, 0);  // 15 de mayo 2025, 12:30:00  
+```  
+
+`String getTimeString()`  
+Devuelve la hora y fecha actual en formato "YYYY-MM-DD HH:MM:SS" como String.
+
+Ejemplo:
+
+```cpp
+
+Serial.println(reloj.getTimeString());  // "2025-05-15 12:30:00"  
+```  
+
+`uint32_t getEpochTime()`  
+Devuelve el tiempo actual en formato Unix timestamp (segundos desde 1970).
+
+Ejemplo:
+
+```cpp
+
+uint32_t t = reloj.getEpochTime();  // 1700000000, por ejemplo  
+```  
+
+`void sincronizarConNTP()`  
+Actualiza la hora del RTC usando un servidor NTP, si el ESP32 está conectado a WiFi.
+
+Requisitos:
+
+Llamar solo si `WiFi.status() == WL_CONNECTED.`
+
+Utiliza `"pool.ntp.org"` como servidor NTP por defecto.
+
+
 
 	
 ## 💡 Consideraciones a tener en cuenta
