@@ -3,21 +3,34 @@
 DS3231Clock::DS3231Clock() {}
 
 void DS3231Clock::begin() {
-  rtc.begin();
+  if (!rtc.begin()) {
+    Serial.println("Error: No se pudo iniciar el RTC DS3231.");
+    return;
+  }
+
+  if (rtc.lostPower()) {
+    Serial.println("El RTC perdió la energía, se debe configurar la hora.");
+  }
 }
+
 
 void DS3231Clock::setDateTime(int year, int month, int day, int hour, int minute, int second) {
   rtc.adjust(DateTime(year, month, day, hour, minute, second));
 }
 
 String DS3231Clock::getTimeString() {
+  if (!rtc.begin()) return "RTC no disponible";
+
   DateTime now = rtc.now();
+  if (now.year() < 2020) return "Hora no válida";
+
   char buffer[20];
   sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d",
           now.year(), now.month(), now.day(),
           now.hour(), now.minute(), now.second());
   return String(buffer);
 }
+
 
 uint32_t DS3231Clock::getEpochTime() {
   return rtc.now().unixtime();
@@ -34,7 +47,12 @@ void DS3231Clock::sincronizarConNTP() {
 
   struct tm tiempo;
   if (!getLocalTime(&tiempo)) {
-    Serial.println("❌ Error obteniendo hora desde NTP");
+    Serial.println("Error obteniendo hora desde NTP");
+    return;
+  }
+
+  if (!rtc.begin()) {
+    Serial.println("No se puede actualizar RTC: no está disponible.");
     return;
   }
 
@@ -46,3 +64,4 @@ void DS3231Clock::sincronizarConNTP() {
   Serial.println("✅ RTC actualizado con hora NTP:");
   Serial.println(now.timestamp());
 }
+
