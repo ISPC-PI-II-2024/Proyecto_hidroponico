@@ -1,0 +1,18 @@
+{
+  "name": "BUZZER",
+  "version": "1.0.0",
+  "description": "Funciones del buzzer, configuraciones, umbrales y clase, asi como las funciones para ser invocado",
+  "keywords": ["sensor","actuador","buzzer", "alarma"],
+  "repository": {
+    "type": "git",
+    "url": "a definir"
+  },
+  "authors": [
+    {
+      "name": "Vittorio Duriguti",
+      "email": "vittodutti@gmail.com"
+    }
+  ],
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32"]
+}

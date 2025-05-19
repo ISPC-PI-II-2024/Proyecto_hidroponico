@@ -1,0 +1,18 @@
+{
+  "name": "Nombre del sensor/actuador",
+  "version": "1.0.0",
+  "description": "Descripcion breve de la libreria",
+  "keywords": ["sensor", "otros tags que consideren utiles"],
+  "repository": {
+    "type": "git",
+    "url": "a definir"
+  },
+  "authors": [
+    {
+      "name": "",
+      "email": "@gmail.com"
+    }
+  ],
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32"]
+}
