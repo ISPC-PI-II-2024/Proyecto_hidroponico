@@ -1,8 +1,8 @@
 {
-  "name": "Nombre del sensor/actuador",
+  "name": "WiFi",
   "version": "1.0.0",
-  "description": "Descripcion breve de la libreria",
-  "keywords": ["sensor", "otros tags que consideren utiles"],
+  "description": "Gestion no bloqueante, en millis, sin FreeRTOs, con maquina de estado, para el control de conexiones via WiFi",
+  "keywords": ["conexion", "wifi"],
   "repository": {
     "type": "git",
     "url": "a definir"
