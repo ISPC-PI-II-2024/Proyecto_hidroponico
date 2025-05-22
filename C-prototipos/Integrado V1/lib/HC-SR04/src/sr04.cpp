@@ -1,6 +1,8 @@
 #include "SR04.h"
 
-// Defino el metodo "begin", arranca en estado IDLE y espera 200ms entre mediciones
+//=======================================================
+// Metodo "begin" | Arranca en estado IDLE y espera 200ms entre mediciones
+//=======================================================
 void SR04::begin(uint8_t pinTrig, uint8_t pinEcho) {
   _pinTrig = pinTrig;
   _pinEcho = pinEcho;
@@ -13,7 +15,9 @@ void SR04::begin(uint8_t pinTrig, uint8_t pinEcho) {
   _lastDistance   = -1;
 }
 
-// Defino el metodo "read", que lanza la medicion y devuelve la distancia en cm o -1 si hubo timeout
+//=======================================================
+// Metodo "read" | Lanza la medicion y devuelve la distancia en cm o -1 si hubo timeout
+//=======================================================
 float SR04::read() {
   unsigned long nowMs = millis();
   unsigned long nowUs = micros();

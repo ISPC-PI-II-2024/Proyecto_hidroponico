@@ -3,18 +3,17 @@
 
 #include <Arduino.h>
 
+//=======================================================
+// Clase SR04
+//=======================================================
 class SR04 {
 public:
   SR04() = default;
-  /// Inicializa el sensor indicando pines TRIG y ECHO
-  void begin(uint8_t pinTrig, uint8_t pinEcho);
-
-  /// Lanza la medición y devuelve la última distancia en cm (-1 si timeout)
-  float read();
+  void begin(uint8_t pinTrig, uint8_t pinEcho);     // Inicializa el sensor indicando pines TRIG y ECHO
+  float read();                                     // Lanza la medición y devuelve la última distancia en cm (o -1 si timeout)
 
 private:
-    // Maquina de estados
-  enum State : uint8_t {
+  enum State : uint8_t {                            // Maquina de estados
     IDLE,
     TRIGGER_PULSE,
     WAIT_HIGH,
