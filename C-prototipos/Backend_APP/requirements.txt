@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+paho-mqtt
+mysql-connector-python
+python-dotenv
+sqlalchemy
+pydantic-settings
+pymysql
+cryptography
