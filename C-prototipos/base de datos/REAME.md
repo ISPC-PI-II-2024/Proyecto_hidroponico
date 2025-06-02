@@ -1,4 +1,4 @@
-# Proyecto Hidropónico - Base de Datos Relacional (MySQL)
+# Proyecto Hidropónico - Base de Datos
 
 Este proyecto contiene el diseño y estructura de una base de datos relacional para el sistema hidropónico inteligente. La base de datos permite registrar sensores, lecturas, actuadores, acciones de usuarios y sistemas instalados, siendo compatible con una interfaz tipo **dashboard** para el monitoreo y control del sistema en tiempo real.
 
