@@ -64,6 +64,8 @@ El objetivo es construir una solución inteligente, ecológica y accesible que c
 📄 LICENSE       → Licencia del proyecto
 ```
 
+[![Chat-GPT-Image-2-jun-2025-00-40-08.png](https://i.postimg.cc/J0XnT6kR/Chat-GPT-Image-2-jun-2025-00-40-08.png)](https://postimg.cc/YLpM0xRP)
+
 ---
 
 ## 📄 Licencia
