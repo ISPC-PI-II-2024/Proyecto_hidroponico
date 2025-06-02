@@ -1,0 +1,18 @@
+{
+    "version": 1,
+    "author": "Jose Luis Marquez",
+    "editor": "wokwi",
+    "parts": [
+      { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": -48, "left": -158.36, "attrs": {} },
+      { "type": "wokwi-lcd2004", "id": "lcd1", "top": -32, "left": 5.6, "attrs": { "pins": "i2c" } }
+    ],
+    "connections": [
+      [ "esp:TX", "$serialMonitor:RX", "", [] ],
+      [ "esp:RX", "$serialMonitor:TX", "", [] ],
+      [ "esp:GND.3", "lcd1:GND", "black", [ "h28.8", "v-38.4", "h-9.6" ] ],
+      [ "lcd1:SDA", "esp:21", "green", [ "h-28.8", "v9.8" ] ],
+      [ "lcd1:SCL", "esp:22", "blue", [ "h-19.2", "v0.3" ] ],
+      [ "esp:3V3", "lcd1:VCC", "red", [ "h0.15", "v-38.4", "h134.4", "v67.1" ] ]
+    ],
+    "dependencies": {}
+  }

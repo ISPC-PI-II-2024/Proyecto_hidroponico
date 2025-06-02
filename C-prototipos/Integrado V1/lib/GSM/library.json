@@ -1,0 +1,18 @@
+{
+  "name": "GSM",
+  "version": "1.0.0",
+  "description": "Gestion no bloqueante, en millis, sin FreeRTOs, con maquina de estado, para el control de conexiones via GSM",
+  "keywords": ["conexion", "gsm"],
+  "repository": {
+    "type": "git",
+    "url": "a definir"
+  },
+  "authors": [
+    {
+      "name": "",
+      "email": "@gmail.com"
+    }
+  ],
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32"]
+}

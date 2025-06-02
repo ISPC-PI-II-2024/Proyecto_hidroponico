@@ -1,0 +1,18 @@
+{
+  "name": "HC-SR04",
+  "version": "1.0.0",
+  "description": "Gestion del sensor de ultrasonido HC-SR04, que permite medir la distancia entre el sensor y un objeto. Se define la clase, variables, funciones y modos de implementacion",
+  "keywords": ["sr04","ultrasonido","distancia","sensor"],
+  "repository": {
+    "type": "git",
+    "url": "a definir"
+  },
+  "authors": [
+    {
+      "name": "Durigutti Vittorio",
+      "email": "vittodutti@gmail.com"
+    }
+  ],
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32"]
+}

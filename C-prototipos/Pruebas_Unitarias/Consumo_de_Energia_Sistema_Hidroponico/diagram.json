@@ -1,0 +1,17 @@
+{
+    "version": 1,
+    "author": "Juan Diego Gonzalez Antoniazzi",
+    "editor": "wokwi",
+    "parts": [
+      { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": -235.3, "left": 52.6, "attrs": {} },
+      { "type": "wokwi-potentiometer", "id": "pot1", "top": -327.7, "left": 67, "attrs": {} }
+    ],
+    "connections": [
+      [ "esp:TX0", "$serialMonitor:RX", "", [] ],
+      [ "esp:RX0", "$serialMonitor:TX", "", [] ],
+      [ "esp:VP", "pot1:SIG", "green", [ "h-9.6", "v-48.3", "h57.6" ] ],
+      [ "pot1:GND", "esp:GND.1", "black", [ "v19.2", "h67.2", "v153.6" ] ],
+      [ "pot1:VCC", "esp:3V3", "red", [ "v9.6", "h56.8", "v172.8" ] ]
+    ],
+    "dependencies": {}
+  }
