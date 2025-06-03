@@ -1,76 +1,129 @@
-# Presentación del Proyecto: Consumo de Energía en Sistema Hidropónico
+# Consumo de Energía - Sistema Hidropónico
 
-Este proyecto utiliza un ESP32-S3 DevKitM-1 para medir el consumo de energía en un sistema hidropónico. Está desarrollado con el framework Arduino y configurado para ser utilizado con PlatformIO.
+Este proyecto implementa y prueba un **módulo de medición de consumo de energía** para sistemas hidropónicos, utilizando un sensor I2C para obtener voltaje, corriente y calcular potencia. Incluye pruebas unitarias exhaustivas con mocks de hardware para asegurar la robustez del código.
+
+---
 
 ## Estructura del Proyecto
 
-### Archivos Principales
-- **`platformio.ini`**: Archivo de configuración principal de PlatformIO que define el entorno de desarrollo para la placa ESP32-S3 y el framework Arduino.
-- **`wokwi.toml`**: Configuración para el simulador Wokwi, especificando el firmware y el archivo ELF generados.
-- **`diagram.json`**: Representación del diseño del circuito en el simulador Wokwi, incluyendo un ESP32 y un potenciómetro.
-- **`.gitignore`**: Lista de archivos y carpetas ignorados por Git, como `.pio` y `.vscode`.
-
-### Código Fuente
-- **`src/main.cpp`**: Contiene el código principal que realiza lecturas analógicas del pin 36 para calcular corriente y voltaje, imprimiendo los resultados en el monitor serial.
-
-### Carpetas
-- **`include/`**: Archivos de cabecera del proyecto.  
-  - `README`: Explica cómo usar archivos de cabecera en C/C++.
-- **`lib/`**: Bibliotecas específicas del proyecto.  
-  - `README`: Describe cómo organizar y usar bibliotecas privadas en PlatformIO.
-- **`test/`**: Pruebas unitarias del proyecto.  
-  - `README`: Explica cómo ejecutar pruebas unitarias con PlatformIO.
-- **`.vscode/`**: Configuración para Visual Studio Code.  
-  - `c_cpp_properties.json`: Configuración de rutas de inclusión y compilador.  
-  - `launch.json`: Configuración para depuración.  
-  - `extensions.json`: Recomendaciones de extensiones.
-
-### Otros Archivos
-- **`.pio/`**: Carpeta generada automáticamente que contiene archivos de compilación como el firmware (`firmware.bin`) y el ELF (`firmware.elf`).
-- **`project.checksum`**: Archivo generado automáticamente con un hash del proyecto.
-
-## Requisitos
-- **Hardware**: ESP32-S3 DevKitM-1.  
-- **Software**:  
-  - PlatformIO IDE (recomendado con Visual Studio Code).  
-  - Simulador Wokwi (opcional para pruebas virtuales).
-
-## Configuración y Ejecución
-1. Clona el repositorio en tu máquina local.
-2. Abre el proyecto en Visual Studio Code con la extensión de PlatformIO instalada.
-3. Conecta el ESP32-S3 DevKitM-1 a tu computadora.
-4. Compila y sube el firmware al ESP32 ejecutando:
-   ```bash
-   pio run --target upload
-   ```
-5. Abre el monitor serial para visualizar los datos:
-   ```bash
-   pio device monitor
-   ```
-
-## Ejecución de Pruebas Unitarias
-
-Para ejecutar las pruebas unitarias del proyecto, sigue los pasos a continuación:
-
-1. Asegúrate de que el sensor esté conectado al pin especificado en el código (`36`).
-2. Abre una terminal en la raíz del proyecto.
-3. Ejecuta el siguiente comando para compilar y ejecutar las pruebas:
-   ```bash
-      pio test -e esp32-s3-devkitm-1
-      ```
-   4. Observa los resultados en el monitor serial. Si el sensor no está presente, se notificará la falla en la consola.
-
-## Simulación en [Wokwi](https://wokwi.com/projects/429326475435077633)
-1. Abre el archivo `diagram.json` en el simulador Wokwi.
-2. Verifica que el firmware esté configurado correctamente en `wokwi.toml`.
-
-
-
-## Documentación Adicional
-- [PlatformIO Documentation](https://docs.platformio.org/)
-- [Wokwi Simulator](https://wokwi.com/)
-- [Arduino Framework](https://www.arduino.cc/)
-
-## Autor
-Juan Diego Gonzalez Antoniazzi
 ```
+Consumo_de_Energia_Sistema_Hidroponico/
+├── lib/
+│   └── Modulo_de_Energia/
+│       ├── Modulo_de_Energia.h
+│       ├── Modulo_de_Energia.cpp
+│       └── library.json
+├── src/
+│   └── main.cpp
+├── test/
+│   └── Test_Modulo_de_Energia/
+│       ├── test_main.cpp
+│       ├── test_cases.cpp
+│       ├── Resultados.md
+│       └── lib/
+│           └── MockWire/
+│               ├── Wire.h
+│               ├── Wire.cpp
+│               └── library.json
+├── platformio.ini
+└── README.md
+```
+
+---
+
+## Descripción de Carpetas y Archivos
+
+### `lib/Modulo_de_Energia/`
+- **Modulo_de_Energia.h / .cpp**: Implementación de la clase `Modulo_de_Energia`, que abstrae la lectura de voltaje, corriente y cálculo de potencia desde un sensor I2C.
+- **library.json**: Metadatos de la librería para PlatformIO.
+
+### `src/`
+- **main.cpp**: Ejemplo de uso en un entorno real (ESP32), mostrando cómo inicializar el módulo y leer valores periódicamente.
+
+### `test/Test_Modulo_de_Energia/`
+- **test_main.cpp**: Entrada principal para ejecutar las pruebas unitarias con Unity.
+- **test_cases.cpp**: Implementación de todos los casos de prueba, cubriendo inicialización, lecturas correctas, fallos de comunicación, simulaciones de carga y condiciones anómalas.
+- **Resultados.md**: Informe de resultados de las pruebas unitarias ejecutadas.
+- **lib/MockWire/**: Implementación mock de la librería `Wire` de Arduino para simular el bus I2C en pruebas.
+  - **Wire.h / Wire.cpp**: Mock completo de la clase `TwoWire` (Wire), permitiendo simular lecturas, escrituras y errores de comunicación.
+  - **library.json**: Metadatos del mock para PlatformIO.
+
+### Raíz del Proyecto
+- **platformio.ini**: Configuración de entornos PlatformIO para pruebas (`esp32_test_energia`) y firmware real (`esp32_firmware`).
+- **README.md**: Este archivo.
+
+---
+
+## Principales Características
+
+- **Lectura de voltaje y corriente** vía I2C, con conversión a unidades físicas.
+- **Cálculo de potencia** en tiempo real.
+- **Manejo robusto de errores de comunicación**.
+- **Pruebas unitarias exhaustivas** usando Unity y mocks de hardware.
+- **Simulación de condiciones reales y anómalas** (baja/alta carga, fallos de sensor).
+
+---
+
+## Ejemplo de Uso (main.cpp)
+
+```cpp
+#include <Arduino.h>
+#include "Modulo_de_Energia.h"
+
+Modulo_de_Energia energyMonitor(Wire);
+
+void setup() {
+  Serial.begin(115200);
+  energyMonitor.begin();
+  if (energyMonitor.isCommunicationOK()) {
+    Serial.println("Módulo de energía inicializado correctamente.");
+  }
+}
+
+void loop() {
+  if (energyMonitor.isCommunicationOK()) {
+    float voltage = energyMonitor.getVoltage();
+    float current = energyMonitor.getCurrent();
+    float power = energyMonitor.getPower();
+    Serial.print("Voltaje: "); Serial.println(voltage);
+    Serial.print("Corriente: "); Serial.println(current);
+    Serial.print("Potencia: "); Serial.println(power);
+  }
+  delay(5000);
+}
+```
+
+---
+
+## Pruebas Unitarias
+
+- **Framework:** Unity (integrado con PlatformIO).
+- **MockWire:** Simula el bus I2C y el sensor para pruebas determinísticas.
+- **Cobertura:** Inicialización, lecturas correctas, fallos de comunicación, simulaciones de carga, condiciones anómalas.
+- **Resultados:** Ver `test/Test_Modulo_de_Energia/Resultados.md`.
+
+---
+
+## Cómo Ejecutar
+
+1. **Instalar PlatformIO** en VSCode.
+2. **Seleccionar entorno**:  
+   - Para pruebas: `esp32_test_energia`
+   - Para firmware: `esp32_firmware`
+3. **Compilar y ejecutar pruebas**:
+   ```
+   pio test -e esp32_test_energia
+   ```
+4. **Subir firmware real**:
+   ```
+   pio run -e esp32_firmware -t upload
+   ```
+
+---
+
+## Créditos
+
+- Autor: Juan Diego Gonzalez Antoniazzi
+- Contacto: juandi19972008@gmail.com
+
+---

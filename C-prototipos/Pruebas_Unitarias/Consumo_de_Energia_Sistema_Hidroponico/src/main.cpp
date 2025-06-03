@@ -1,33 +1,40 @@
-#include <Arduino.h> // Incluye la biblioteca principal de Arduino para usar sus funciones
+#include <Arduino.h>
+#include "Modulo_de_Energia.h" // Incluye tu librería personalizada para el módulo de energía
 
-// Declaración de variables globales
-float corriente = 0.0;  // Variable para almacenar el valor de la corriente en amperios
-float voltaje = 0.0;    // Variable para almacenar el valor del voltaje en voltios
-float R = 10000.0;      // Resistencia en ohmios utilizada para calcular la corriente
+// La instancia global de Wire es proporcionada por el framework Arduino
+Modulo_de_Energia energyMonitor(Wire); // Crea un objeto para manejar el módulo de energía
 
 void setup() {
   Serial.begin(115200); // Inicializa la comunicación serial a 115200 baudios
-  Serial.println("Hello, ESP32!"); // Imprime un mensaje inicial en el monitor serial
+  while (!Serial) {
+    ; // Espera a que el puerto serial se conecte. Necesario para algunas placas.
+  }
+  Serial.println("Iniciando Módulo de Consumo de Energía...");
+  
+  energyMonitor.begin(); // Inicializa el módulo de energía
+
+  if (energyMonitor.isCommunicationOK()) {
+    Serial.println("Módulo de energía inicializado correctamente.");
+  } else {
+    Serial.println("Error al inicializar el módulo de energía.");
+  }
 }
 
 void loop() {
-  // Bucle para realizar 100 lecturas del pin analógico y calcular la corriente promedio
-  for(int i = 0; i < 100; i++) {
-    // Lee el valor analógico del pin 36, lo convierte a voltaje y calcula la corriente
-    corriente = (float) analogRead(36) * (3.3 / 4095.0) / R + corriente;
+  if (energyMonitor.isCommunicationOK()) {
+    // Si la comunicación es correcta, obtiene y muestra los valores de voltaje, corriente y potencia
+    float voltage = energyMonitor.getVoltage();
+    float current = energyMonitor.getCurrent();
+    float power = energyMonitor.getPower();
+
+    Serial.print("Voltaje: "); Serial.print(voltage, 3); Serial.println(" V");
+    Serial.print("Corriente: "); Serial.print(current, 3); Serial.println(" A");
+    Serial.print("Potencia: "); Serial.print(power, 3); Serial.println(" W");
+  } else {
+    // Si hay un error de comunicación, intenta reinicializar el módulo
+    Serial.println("Error de comunicación con el sensor de energía. Intentando reinicializar...");
+    energyMonitor.begin(); // Intenta reinicializar en caso de error continuo
   }
-
-  // Lee el valor analógico del pin 36 y lo convierte a voltaje
-  voltaje = analogRead(36) * (3.3 / 4095.0);
-
-  // Imprime la corriente promedio en miliamperios con 4 decimales
-  Serial.print(corriente * 1000 / 100, 4);
-  Serial.println(" mA.");
-
-  // Imprime el voltaje leído con 3 decimales
-  Serial.print(voltaje, 3);
-  Serial.println(" V.");
-
-  // Reinicia la variable de corriente para el próximo cálculo
-  corriente = 0;
+  
+  delay(5000); // Espera 5 segundos entre lecturas
 }
