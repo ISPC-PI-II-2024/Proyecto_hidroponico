@@ -12,11 +12,14 @@ void setup() {
 
 void loop() {
   // Bucle para realizar 100 lecturas del pin analógico y calcular la corriente promedio
+  float corrienteAcumulada = 0.0; // Variable local para acumular la corriente
   for(int i = 0; i < 100; i++) {
     // Lee el valor analógico del pin 36, lo convierte a voltaje y calcula la corriente
-    corriente = (float) analogRead(36) * (3.3 / 4095.0) / R + corriente;
+    corrienteAcumulada += (float) analogRead(36) * (3.3 / 4095.0) / R;
   }
 
+  // Asigna el valor acumulado a la variable global corriente
+  corriente = corrienteAcumulada;
   // Lee el valor analógico del pin 36 y lo convierte a voltaje
   voltaje = analogRead(36) * (3.3 / 4095.0);
 
