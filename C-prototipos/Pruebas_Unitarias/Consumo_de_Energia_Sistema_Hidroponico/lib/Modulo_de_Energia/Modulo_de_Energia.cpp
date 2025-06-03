@@ -33,10 +33,9 @@ bool Modulo_de_Energia::isCommunicationOK() const {
 
 // Lee un valor crudo (raw) de un registro específico del sensor
 uint16_t Modulo_de_Energia::readRawValue(uint8_t reg) {
-    if (!_communicationOK && reg != 0) { 
-        // Si la comunicación ya falló (y no es una prueba de begin), no intentes leer.
-        // Sin embargo, durante `begin()`, _communicationOK puede ser falso, y `getVoltage/Current` son llamados.
-        // Este check es más para lecturas subsecuentes.
+    if (!_communicationOK) { 
+        // Si la comunicación ya falló, retorna un valor de error inmediatamente.
+        return 0;
     }
 
     _wire->beginTransmission(I2C_ADDRESS_SENSOR); // Inicia transmisión I2C
