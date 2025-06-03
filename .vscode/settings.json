@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.rmd": "markdown",
+        "modulo_de_energiacpp": "cpp"
+    }
+}

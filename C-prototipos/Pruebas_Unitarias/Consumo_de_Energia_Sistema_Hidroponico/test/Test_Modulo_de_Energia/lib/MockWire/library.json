@@ -1,0 +1,8 @@
+{
+  "name": "MockWire",
+  "version": "1.0.0",
+  "description": "Implementación simulada de la librería Wire de Arduino para pruebas del Módulo de Energía.",
+  "keywords": "mock, i2c, wire",
+  "frameworks": "*", 
+  "platforms": "*"
+}
