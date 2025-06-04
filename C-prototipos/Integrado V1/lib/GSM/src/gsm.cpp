@@ -1,53 +1,61 @@
 #include "GSM.h"
 
+//================================
+// Clase GSM
+//================================
+
 GSM::GSM(HardwareSerial& consoleSerial,
-                           HardwareSerial& modemSerial,
-                           uint32_t baud)
+         HardwareSerial& modemSerial,
+         uint32_t baudRate)
  : _console(consoleSerial)
  , _modemSerial(modemSerial)
+ , _baud(baudRate)
  , _modem(_modemSerial)
- , _state(State::Idle)
+ , _state(State::Inactivo)
 {}
 
+//-----------------------------------
+// Métodos públicos inicio
+//-----------------------------------
 void GSM::begin() {
-  _console.begin(115200);
-  _modemSerial.begin(baudRate_t( _modemSerial.baudRate() )); 
-  // Carga o pide credenciales
-  if (!cargarCredentiales()) {
-    _state = State::WaitingCredentials;
+  
+  _modemSerial.begin(_baud);                // Iniciar el Serial del módem a la velocidad correcta
+  if (!cargarCredenciales()) {              // Carga o pide credenciales
+    _state = State::EsperandoCredenciales;
     solicitarCredenciales();
   } else {
-    comenzartReinicio();
+    comenzarReinicio();
   }
 }
 
+//-----------------------------------
+// Métodos públicos loop
+//-----------------------------------
 void GSM::loop() {
   switch (_state) {
-    case State::WaitingCredentials:
-      if (leerCredentiales()) {
-        guardarCredentiales();
-        comenzartReinicio();
+    case State::EsperandoCredenciales:
+      if (leerCredenciales()) {
+        guardarCredenciales();
+        comenzarReinicio();
       }
       break;
 
-    case State::Restarting:
+    case State::Reiniciando:
       verificarReinicio();
       break;
 
-    case State::NetworkRegistering:
+    case State::RegistrandoEnRed:
       verificarRegistroRed();
       break;
 
-    case State::GprsConnecting:
+    case State::GprsConectando:
       verificarConexionGprs();
       break;
 
-    case State::Connected:
-      // Aquí tu lógica de sensores
+    case State::Conectado:  // Aquí podríamos verificar si la GPRS se cae, reintentos, etc.      
       break;
 
-    case State::Error:
-      // Podrías reintentar o resetear credenciales
+    case State::Error:      // Queda en estado de error hasta un reinicio externo
       break;
 
     default:
@@ -55,34 +63,48 @@ void GSM::loop() {
   }
 }
 
+//-----------------------------------
+// Métodos públicos de acceso
+//-----------------------------------
 GSM::State GSM::getState() const {
   return _state;
 }
 
-//----------------------
-// 1) Credenciales
-//----------------------
+//-----------------------------------
+// Devuelve la referencia al módem TinyGsm
+//-----------------------------------
+TinyGsm& GSM::getModem() {    // Devuelve la referencia al módem TinyGsm
+  return _modem;
+}
+
+//----------------------------------------------------------------
+// 1) Entrada de credenciales
+//----------------------------------------------------------------
 void GSM::solicitarCredenciales() {
   _console.println("\n--- Configurar GSM ---");
   _console.println("Introduce APN:");
 }
 
-bool GSM::leerCredentiales() {
-  if (!_console.available()) return false;
+bool GSM::leerCredenciales() {
+  if (!_console.available()) return false; // Espera a que haya datos en consola
 
-  _apn = _console.readStringUntil('\n');  _apn.trim();
+  _apn = _console.readStringUntil('\n');
+  _apn.trim();
   _console.println("Usuario APN (enter para vacío):");
   while (!_console.available()) delay(10);
-  _user = _console.readStringUntil('\n'); _user.trim();
-
+  _user = _console.readStringUntil('\n');
+  _user.trim();
   _console.println("Password APN (enter para vacío):");
   while (!_console.available()) delay(10);
-  _pass = _console.readStringUntil('\n'); _pass.trim();
-
+  _pass = _console.readStringUntil('\n');
+  _pass.trim();
   return true;
 }
 
-void GSM::guardarCredentiales() {
+//----------------------------------------------------------------
+// Persistencia de credenciales
+//----------------------------------------------------------------
+void GSM::guardarCredenciales() {
   _prefs.begin("gsm", false);
   _prefs.putString("apn",  _apn);
   _prefs.putString("user", _user);
@@ -91,7 +113,7 @@ void GSM::guardarCredentiales() {
   _console.println("→ Credenciales guardadas");
 }
 
-bool GSM::cargarCredentiales() {
+bool GSM::cargarCredenciales() {
   _prefs.begin("gsm", true);
   bool ok = _prefs.isKey("apn");
   if (ok) {
@@ -103,34 +125,32 @@ bool GSM::cargarCredentiales() {
   return ok;
 }
 
-//----------------------
-// 2) Reinicio módem
-//----------------------
-void GSM::comenzartReinicio() {
+//----------------------------------------------------------------
+// 2) Pasos de conexión
+//----------------------------------------------------------------
+void GSM::comenzarReinicio() {
   _console.println("→ Reiniciando módem GSM...");
-  _state     = State::Restarting;
+  _state     = State::Reiniciando;
   _startMs   = millis();
-  _timeoutMs = 10UL * 1000;  // 10 s
+  _timeoutMs = 10UL * 1000;     // 10 s
 
-  if (! _modem.restart() ) {
+  if (!_modem.restart()) {
     _console.println("Reinicio FALLIDO");
     _state = State::Error;
     return;
   }
-  // Al terminar restart (bloqueante), paso directo al registro
-  comenzarRegistroRed();
+  
+  comenzarRegistroRed();      // restart() es bloqueante y, cuando termina, ya podemos registrar
 }
 
 void GSM::verificarReinicio() {
-  // restart() es bloqueante y llamamos ya a comenzarRegistroRed()
+  // Dado que restart() bloqueó y ya llamó a comenzarRegistroRed(),
+  // aca no hace falta nada, solo queda el apartado vacio.
 }
 
-//----------------------
-// 3) Registro en red
-//----------------------
 void GSM::comenzarRegistroRed() {
   _console.println("→ Registrando en red celular…");
-  _state     = State::NetworkRegistering;
+  _state     = State::RegistrandoEnRed;
   _startMs   = millis();
   _timeoutMs = 60UL * 1000;  // 60 s
 }
@@ -138,7 +158,7 @@ void GSM::comenzarRegistroRed() {
 void GSM::verificarRegistroRed() {
   if (_modem.isNetworkConnected()) {
     _console.println("Red celular OK");
-    comenzartConexionGprs();
+    comenzarConexionGprs();
   }
   else if (millis() - _startMs > _timeoutMs) {
     _console.println("Timeout red celular");
@@ -146,17 +166,14 @@ void GSM::verificarRegistroRed() {
   }
 }
 
-//----------------------
-// 4) Conexión GPRS
-//----------------------
-void GSM::comenzartConexionGprs() {
+void GSM::comenzarConexionGprs() {
   _console.printf("→ Conectando GPRS (APN='%s')…\n", _apn.c_str());
-  _state     = State::GprsConnecting;
+  _state     = State::GprsConectando;
   _startMs   = millis();
   _timeoutMs = 30UL * 1000;  // 30 s
 
-  // Este método es bloqueante hasta >1 s, pero TinyGSM usa su propio timeout
-  if (! _modem.gprsConnect(_apn.c_str(), _user.c_str(), _pass.c_str()) ) {
+  // Llama a gprsConnect (bloqueante hasta ~1 s normalmente)
+  if (!_modem.gprsConnect(_apn.c_str(), _user.c_str(), _pass.c_str())) {
     _console.println("GPRS FALLIDO");
     _state = State::Error;
   }
@@ -166,7 +183,7 @@ void GSM::verificarConexionGprs() {
   if (_modem.isGprsConnected()) {
     _console.print("GPRS OK, IP: ");
     _console.println(_modem.getLocalIP());
-    _state = State::Connected;
+    _state = State::Conectado;
   }
   else if (millis() - _startMs > _timeoutMs) {
     _console.println("Timeout GPRS");

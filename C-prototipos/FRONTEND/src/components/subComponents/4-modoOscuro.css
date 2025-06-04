@@ -1,0 +1,22 @@
+/* Transición suave para cambiar de tema */
+body {
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  /* Modo oscuro */
+  body.dark-mode {
+    --BlancoGral: #121212;
+    --GrisClaro: #333333;
+    --GrisOscuro: #E0E0E0;
+    --color-overlay-bg: rgba(255, 255, 255, 0.5);
+  }
+  
+  /* Modo claro por defecto */
+  body {
+    --BlancoGral: #FFFFFF;
+    --GrisClaro: #F8F9FA;
+    --GrisOscuro: #333333;
+    --RojoClaro: #DA291C;
+    --color-overlay-bg: rgba(0, 0, 0, 0.5);
+  }
+  

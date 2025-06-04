@@ -1,0 +1,39 @@
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: Proyecto_Integrador_2_Backend
+    container_name: PI2-backend
+    ports:
+      - "definir"
+    env_file:
+      - .env
+    environment:
+      DB_HOST: definir
+      DB_PORT:  definir
+    depends_on:
+      - db
+    networks:
+      - a definir
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL}
+    image: Proyecto_Integrador_2_Frontend 
+    container_name: PI2-frontend
+    environment:
+      PORT: definir
+    ports:
+      - "definir:definir"
+    depends_on:
+      - backend
+    restart: always
+
