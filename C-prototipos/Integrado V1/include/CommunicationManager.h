@@ -11,6 +11,9 @@
 #include "GSM.h"
 #include "MqttManager.h"
 
+// Pin definido para el botón de Wi-Fi (usado en WiFiCtrl). Da acceso al portal web
+static constexpr uint8_t WIFI_BUTTON_PIN = 0;
+
 //===================================
 // CommunicationManager
 //===================================

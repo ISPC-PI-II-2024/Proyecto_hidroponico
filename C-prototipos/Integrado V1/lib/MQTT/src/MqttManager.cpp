@@ -109,7 +109,7 @@ void MqttManager::loop() {
 // Callback interno: al conectar al broker
 //----------------------------------------------------------------
 void MqttManager::alConectarMqtt() {
-  Serial.println("[MQTT] Conectado al broker");
+  Serial.println("[INFO] [MQTT] Conectado al broker");
   // Nos suscribimos al tópico configurado
   if (topic_) {
     mqttClient_.subscribe(topic_);
@@ -120,7 +120,7 @@ void MqttManager::alConectarMqtt() {
 // Callback interno: al desconectar del broker
 //----------------------------------------------------------------
 void MqttManager::alDesconectarMqtt() {
-  Serial.println("[MQTT] Desconectado del broker");
+  Serial.println("[INFO] [MQTT] Desconectado del broker");
   estado_ = Estado::DESCONECTADO;
 }
 
@@ -131,7 +131,7 @@ void MqttManager::publish(const char* topic, const char* mensajeJson) {
   if (estado_ == Estado::CONECTADO) {
     mqttClient_.publish(topic, mensajeJson);
   } else {
-    Serial.println("[MQTT] No conectado, no se puede publicar");
+    Serial.println("[ERROR] [MQTT] No conectado, no se puede publicar");
   }
 }
 
@@ -153,13 +153,13 @@ void MqttManager::alRecibirMensaje(char* topic, unsigned char* payload, unsigned
     mensaje += (char)payload[i];
   }
 
-  Serial.printf("[MQTT] Mensaje recibido en %s: %s\n", topic, mensaje.c_str());
+  Serial.printf("[INFO] [MQTT] Mensaje recibido en %s: %s\n", topic, mensaje.c_str());
 
   // 2) Parsear JSON
   StaticJsonDocument<512> doc;  // Se aumentó a 512 en caso de muchos pares clave/valor
   DeserializationError error = deserializeJson(doc, mensaje);
   if (error) {
-    Serial.println("[MQTT] Error al parsear JSON");
+    Serial.println("[INFO] [MQTT] Error al parsear JSON");
     return;  // Salimos si el JSON no es válido
   }
 
@@ -172,7 +172,7 @@ void MqttManager::alRecibirMensaje(char* topic, unsigned char* payload, unsigned
     // 3.a) Verificar si la clave existe en Preferences
     size_t longitud = prefs_.getBytesLength(clave);
     if (longitud == 0) {
-      Serial.printf("[MQTT] ERROR: clave '%s' no encontrada en Preferences\n", clave);
+      Serial.printf("[ERROR] [MQTT] ERROR: clave '%s' no encontrada en Preferences\n", clave);
       huboError = true;
       continue;
     }
@@ -181,28 +181,28 @@ void MqttManager::alRecibirMensaje(char* topic, unsigned char* payload, unsigned
     if (kv.value().is<int>()) {
       int nuevoInt = kv.value().as<int>();
       prefs_.putInt(clave, nuevoInt);
-      Serial.printf("[MQTT] Se actualizó '%s' = %d\n", clave, nuevoInt);
+      Serial.printf("[INFO] [MQTT] Se actualizó '%s' = %d\n", clave, nuevoInt);
 
     } else if (kv.value().is<float>()) {
       float nuevoFloat = kv.value().as<float>();
       prefs_.putFloat(clave, nuevoFloat);
-      Serial.printf("[MQTT] Se actualizó '%s' = %f\n", clave, nuevoFloat);
+      Serial.printf("[INFO] [MQTT] Se actualizó '%s' = %f\n", clave, nuevoFloat);
 
     } else if (kv.value().is<const char*>()) {
       const char* nuevoStr = kv.value().as<const char*>();
       prefs_.putString(clave, nuevoStr);
-      Serial.printf("[MQTT] Se actualizó '%s' = \"%s\"\n", clave, nuevoStr);
+      Serial.printf("[INFO] [MQTT] Se actualizó '%s' = \"%s\"\n", clave, nuevoStr);
 
     } else {
-      Serial.printf("[MQTT] ERROR: tipo de valor no soportado para clave '%s'\n", clave);
+      Serial.printf("[ERROR] [MQTT] ERROR: tipo de valor no soportado para clave '%s'\n", clave);
       huboError = true;
     }
   }
 
   // 4) Informar resultado global por Serial (u opcionalmente por MQTT si se desea)
   if (!huboError) {
-    Serial.println("[MQTT] Preferencias actualizadas correctamente");
+    Serial.println("[INFO] [MQTT] Preferencias actualizadas correctamente");
   } else {
-    Serial.println("[MQTT] Hubo errores al actualizar algunas preferencias");
+    Serial.println("[ERROR] [MQTT] Hubo errores al actualizar algunas preferencias");
   }
 }

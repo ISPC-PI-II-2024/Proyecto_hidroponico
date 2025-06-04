@@ -1,5 +1,3 @@
-// CommunicationManager.cpp
-
 #include "CommunicationManager.h"
 #include <Arduino.h>
 #include <WiFi.h>
@@ -23,7 +21,10 @@ CommunicationManager::CommunicationManager(HardwareSerial& consoleSerial,
                                            const char* mqttPass,
                                            unsigned long wifiTimeoutMs,
                                            unsigned long gsmTimeoutMs)
-  : wifiCtrl_(wifiSerial)
+  : wifiCtrl_(wifiSerial,        // Serial para debug de Wi-Fi
+              WIFI_BUTTON_PIN,   // Pin que dispara “modo configuración” (INPUT_PULLUP)
+              "ESP32_Config",    // SSID elegido para el AP de configuración
+              nullptr)           // (opcional) password del AP; si es nullptr, AP queda abierto
   , gsm_(consoleSerial, modemSerial, 115200)
   , wifiClient_()
   , gsmClient_(gsm_.getModem())
@@ -58,20 +59,31 @@ void CommunicationManager::begin() {
 // loop(): máquina de estados para Wi-Fi → GSM → MQTT
 //------------------------------------------------------------------------------
 void CommunicationManager::loop() {
+  // -----------------------------
+  // 0) Si WiFiCtrl está en “modo configuración”, hay que despachar HTTP:
+  // -----------------------------
+  if (wifiCtrl_.obtenerEstado() == WiFiCtrl::State::PortalActivo) {  // Atiende peticiones al servidor web (GET "/" y POST "/save")
+    wifiCtrl_.handleClient();                                        // Mientras siga en PortalActivo, NO hacemos nada más en la FSM:
+    return;
+  }
+  
+  // -----------------------------
+  // 1) Máquina de estados Wi-Fi → GSM → MQTT
+  // -----------------------------
   switch (state_) {
 
     //------------------------------------
     case State::ConectandoWiFi:
       // 1) Revisamos si Wi-Fi ya está conectado (WiFiCtrl es event-driven)
       if (wifiCtrl_.obtenerEstado() == WiFiCtrl::State::Conectado) {
-        Serial.println("[CommMgr] Wi-Fi conectado. Iniciando MQTT...");
+        Serial.println("[INFO] Wi-Fi conectado. Iniciando MQTT...");
         state_ = State::ConectandogMQTT;
         iniciaMQTT();
       }
       // 2) Si Wi-Fi falla o excede su timeout, pasamos a GSM
       else if (wifiTimedOut() ||
                wifiCtrl_.obtenerEstado() == WiFiCtrl::State::Error) {
-        Serial.println("[CommMgr] Wi-Fi FALLÓ. Iniciando GSM...");
+        Serial.println("[INFO] Wi-Fi FALLÓ. Iniciando GSM...");
         state_ = State::ConectandogGSM;
         gsmStartMs_ = millis();
         iniciaGSM();
@@ -85,13 +97,13 @@ void CommunicationManager::loop() {
 
       // 2) Si GPRS ya está conectado, iniciamos MQTT
       if (gsm_.getState() == GSM::State::Conectado) {
-        Serial.println("[CommMgr] GPRS conectado. Iniciando MQTT...");
+        Serial.println("[INFO] GPRS conectado. Iniciando MQTT...");
         state_ = State::ConectandogMQTT;
         iniciaMQTT();
       }
       // 3) Si GSM falla o excede su timeout, marcamos error general
       else if (gsmTimedOut() || gsm_.getState() == GSM::State::Error) {
-        Serial.println("[CommMgr] GPRS FALLÓ. Estado: ERROR.");
+        Serial.println("[INFO] GPRS FALLÓ. Estado: ERROR.");
         state_ = State::Error;
       }
       break;
@@ -103,12 +115,12 @@ void CommunicationManager::loop() {
 
       // 2) Si MQTT ya está conectado al broker, pasamos a Conectado
       if (mqttMgr_.getEstado() == MqttManager::Estado::CONECTADO) {
-        Serial.println("[CommMgr] MQTT conectado (broker). Sistema listo.");
+        Serial.println("[INFO] MQTT conectado (broker). Sistema listo.");
         state_ = State::Conectado;
       }
       // 3) Si en cualquier punto se pierde toda la red (ni Wi-Fi ni GPRS), reintentar Wi-Fi
       else if (!redHabilitada()) {
-        Serial.println("[CommMgr] Se perdió conexión de red; reintentando Wi-Fi...");
+        Serial.println("[INFO] Se perdió conexión de red; reintentando Wi-Fi...");
         state_ = State::ConectandoWiFi;
         wifiStartMs_ = millis();
         iniciarWiFi();
@@ -120,7 +132,7 @@ void CommunicationManager::loop() {
       // 1) Mantenemos Wi-Fi y GPRS (WiFiCtrl es event-driven, gsm_.loop() chequea GPRS)
       //    además, verificamos si la red sigue disponible:
       if (!redHabilitada()) {
-        Serial.println("[CommMgr] Se perdió red. Reiniciando ciclo de conexión...");
+        Serial.println("[INFO] Se perdió red. Reiniciando ciclo de conexión...");
         state_ = State::ConectandoWiFi;
         wifiStartMs_ = millis();
         iniciarWiFi();
@@ -169,15 +181,15 @@ bool CommunicationManager::redHabilitada() const {
 // iniciarWiFi(): lanza la conexión Wi-Fi usando WiFiCtrl (portal cautivo incluido)
 //------------------------------------------------------------------------------
 void CommunicationManager::iniciarWiFi() {
-  Serial.println("[CommMgr] Intentando conectar por Wi-Fi.");
-  wifiCtrl_.iniciar();  // autoConnect vía WiFiManager
+  Serial.println("[INFO] Intentando conectar por Wi-Fi.");
+  wifiCtrl_.iniciar();
 }
 
 //------------------------------------------------------------------------------
 // iniciaGSM(): arranca el FSM de GSM/GPRS
 //------------------------------------------------------------------------------
 void CommunicationManager::iniciaGSM() {
-  Serial.println("[CommMgr] Intentando conectar por GSM (GPRS).");
+  Serial.println("[INFO] Intentando conectar por GSM (GPRS).");
   gsm_.begin();
 }
 
