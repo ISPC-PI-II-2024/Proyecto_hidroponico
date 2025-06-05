@@ -3,12 +3,9 @@
 
 #include <DHT.h>
 
-#define DHTPIN 4        // Pin de datos del sensor
-#define DHTTYPE DHT11   // Tipo de sensor
-
 class DHT11Sensor {
   public:
-    DHT11Sensor();
+    DHT11Sensor(uint8_t pin, uint8_t type = DHT11); // Pin y tipo opcional
     void begin();
     float readTemperature();
     float readHumidity();

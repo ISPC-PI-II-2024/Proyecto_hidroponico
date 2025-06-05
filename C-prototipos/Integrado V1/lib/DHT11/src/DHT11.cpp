@@ -1,6 +1,7 @@
 #include "DHT11.h"
 
-DHT11Sensor::DHT11Sensor() : dht(DHTPIN, DHTTYPE) {}
+DHT11Sensor::DHT11Sensor(uint8_t pin, uint8_t type)
+  : dht(pin, type) {}
 
 void DHT11Sensor::begin() {
   dht.begin();

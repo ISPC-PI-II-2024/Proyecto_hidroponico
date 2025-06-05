@@ -1,12 +1,13 @@
 #include "GY302_BH1750.h"
 
-GY302::GY302() : lightMeter() {}
+GY302::GY302(uint8_t sda, uint8_t scl, TwoWire &wirePort)
+  : _sda(sda), _scl(scl), _wire(&wirePort), lightMeter() {}
 
 bool GY302::begin() {
-  Wire.begin(); // Inicia I2C con pines default (SDA=21, SCL=22 en ESP32)
-  return lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE);
+  _wire->begin(_sda, _scl);
+  return lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE, 0x23, _wire);
 }
 
 float GY302::readLightLevel() {
-  return lightMeter.readLightLevel(); // Retorna lux
+  return lightMeter.readLightLevel();
 }

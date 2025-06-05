@@ -14,136 +14,98 @@ WiFiCtrl::WiFiCtrl(HardwareSerial& serial,
     _server(80),
     _estado(State::Idle),
     _configMode(false) {
-    // No hacemos nada más en el constructor; la inicialización completa queda en iniciar()
+    // Inicializamos Preferences en el namespace "config" (solo lectura/​​​​escritura cuando se abra)
+    // No hacemos open() aquí; lo abriremos en iniciar().
+
+    // Configuramos ISR para el botón si fuera necesario o manejaremos polling en iniciar()
 }
 
 // ================================
-// iniciar(): configura pin de botón, Preferences y decide modo
+// iniciar(): configura botón, lee credenciales y arranca modo estación o AP para configuración
 // ================================
 void WiFiCtrl::iniciar() {
     // 1) Configuramos el botón como INPUT_PULLUP
     pinMode(_buttonPin, INPUT_PULLUP);
 
-    // 2) Abrimos Preferences en el namespace "wifi" (lectura/escritura)
-    _prefs.begin("wifi", false);
+    // 2) Abrimos Preferences en el namespace "config" (​lectura/escritura​)
+    _prefs.begin("config", false);
 
     // 3) Intentamos leer SSID y PASS guardados
     String savedSSID = _prefs.getString("ssid", "");
     String savedPASS = _prefs.getString("pass", "");
 
-    // 4) Verificamos si el botón está presionado (activo LOW) 
-    bool buttonPressed = (digitalRead(_buttonPin) == LOW);
+    // 4) Verificamos si el botón está presionado (LOW) o no hay credenciales guardadas
+    if (digitalRead(_buttonPin) == LOW || savedSSID.length() == 0 || savedPASS.length() == 0) {
+        // Entramos en modo Access Point para configurar
+        _estado = State::Config;
+        _configMode = true;
 
-    // 5) Decidimos:
-    if (buttonPressed || savedSSID.length() == 0) {
-        // No hay credenciales guardadas O el usuario pidió modo configuración
-        reportarEstado("Entrando en MODO CONFIGURACIÓN (AP + servidor web)...");
-        startConfigMode();
+        // Arrancamos AP
+        WiFi.mode(WIFI_AP);
+        WiFi.softAP(_apSSID, _apPassword);
+        IPAddress IP = WiFi.softAPIP();
+        char buf[128];
+        snprintf(buf, sizeof(buf), "AP arrancado con SSID='%s', IP='%s'", _apSSID, IP.toString().c_str());
+        reportarEstado(buf);
+
+        // Arrancamos servidor web
+        _server.on("/", HTTP_GET, [&]() {
+            handleRoot();
+        });
+        _server.on("/save", HTTP_POST, [&]() {
+            handleSave();
+        });
+        _server.onNotFound([&]() {
+            _server.send(404, "text/plain", "404: Página no encontrada");
+        });
+        _server.begin();
+        reportarEstado("Servidor HTTP iniciado en modo configuración");
+
     } else {
-        // Ya tenemos credenciales y NO se presionó el botón → intentamos conectar en STA
-        _estado = State::Conectando;
-        reportarEstado("Intentando conectar a Wi-Fi en modo STA...");
+        // 5) Tenemos credenciales Wi-Fi; arrancamos en modo estación
+        _estado = State::Connect;
+        _configMode = false;
 
+        // Conectamos a Wi-Fi con savedSSID y savedPASS
+        reportarEstado(("Conectando a Wi-Fi: '" + savedSSID + "'").c_str());
         connectToWiFi(savedSSID, savedPASS);
 
-        // Esperamos hasta 5 000 ms para ver si conecta
+        // Esperamos hasta 10 segundos
         unsigned long inicio = millis();
-        while (WiFi.status() != WL_CONNECTED && millis() - inicio < 5000) {
-            delay(200);
+        while (WiFi.status() != WL_CONNECTED && (millis() - inicio) < 10000) {
+            delay(100);
         }
+
         if (WiFi.status() == WL_CONNECTED) {
-            _estado = State::Conectado;
             char buf[128];
-            snprintf(buf, sizeof(buf),
-                     "Conectado a WiFi '%s', IP: %s",
-                     savedSSID.c_str(),
-                     WiFi.localIP().toString().c_str());
+            snprintf(buf, sizeof(buf), "Conectado a Wi-Fi. IP: %s", WiFi.localIP().toString().c_str());
             reportarEstado(buf);
-            // Quedamos en modo “normal” (sin iniciar servidor web)
+            // En este punto, tu aplicación puede leer también desde Preferences:
+            // String broker = _prefs.getString("broker", "");
+            // uint32_t port = _prefs.getUInt("port", 1883);
+            // String topic = _prefs.getString("topic", "");
+            // String deviceName = _prefs.getString("deviceName", "");
+            // Y luego configurar tu cliente MQTT con esos valores.
         } else {
-            // No pudo conectar: credenciales inválidas o falla de red
-            _estado = State::Error;
-            reportarEstado("[ERROR] Error: no se pudo conectar en modo STA. Activando modo configuración...");
-            startConfigMode();
+            reportarEstado("Error: No se pudo conectar a Wi-Fi");
+            // Si no se conecta, podrías forzar entrar a modo config, pero lo dejamos así.
         }
     }
+
+    // 6) Cerramos Preferences (modo lectura en adelante, se volverá a abrir para escribir en handleSave)
+    _prefs.end();
 }
 
 // ================================
-// handleClient(): despacha peticiones HTTP en modo configuración
-// ================================
-void WiFiCtrl::handleClient() {
-    if (_configMode) {
-        _server.handleClient();
-    }
-}
-
-// ================================
-// obtenerEstado(): devuelve el estado actual
-// ================================
-WiFiCtrl::State WiFiCtrl::obtenerEstado() const {
-    return _estado;
-}
-
-// ================================
-// startConfigMode(): arranca AP + servidor y define rutas
-// ================================
-void WiFiCtrl::startConfigMode() {
-    _configMode = true;
-    _estado = State::PortalActivo;
-
-    // 1) Cambiamos a modo AP
-    WiFi.mode(WIFI_AP);
-    if (_apPassword && strlen(_apPassword) > 0) {   // AP protegido con contraseña
-        WiFi.softAP(_apSSID, _apPassword);
-    } else {
-        WiFi.softAP(_apSSID);                       // AP abierto
-    }
-
-    // 2) Imprimimos IP del AP
-    IPAddress apIP = WiFi.softAPIP(); // suele ser 192.168.4.1
-    char buf[64];
-    snprintf(buf, sizeof(buf), "[INFO] AP iniciado: SSID='%s', IP: %s", 
-             _apSSID, apIP.toString().c_str());
-    reportarEstado(buf);
-
-    // 3) Configuramos rutas y arrancamos servidor HTTP
-    setupRoutes();
-    _server.begin();
-    reportarEstado("[INFO] Servidor HTTP listo en el puerto 80. Accede a '/' para ingresar SSID/Pass.");
-}
-
-// ================================
-// setupRoutes(): define "/" (GET) y "/save" (POST) y fallback 404
-// ================================
-void WiFiCtrl::setupRoutes() {
-    // GET "/" → formulario HTML
-    _server.on("/", HTTP_GET, [&]() {
-        handleRoot();
-    });
-
-    // POST "/save" → procesa credenciales
-    _server.on("/save", HTTP_POST, [&]() {
-        handleSave();
-    });
-
-    // Si solicitan algo no definido, devolvemos 404
-    _server.onNotFound([&]() {
-        _server.send(404, "text/plain", "404: Página no encontrada");
-    });
-}
-
-// ================================
-// handleRoot(): envía el HTML con el formulario SSID/Password
+// handleRoot(): envía el HTML con el formulario Wi-Fi + MQTT
 // ================================
 void WiFiCtrl::handleRoot() {
-    // Construimos la página HTML (puedes modificar estilos a tu gusto)
     String html = R"rawliteral(
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Configurar Wi-Fi</title>
+  <title>Configurar Wi-Fi y MQTT</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -159,8 +121,10 @@ void WiFiCtrl::handleRoot() {
       display: inline-block;
       margin-top: 50px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      max-width: 400px;
+      width: 100%;
     }
-    input[type=text], input[type=password] {
+    input[type=text], input[type=password], input[type=number] {
       width: 100%;
       padding: 8px 12px;
       margin: 8px 0;
@@ -184,13 +148,69 @@ void WiFiCtrl::handleRoot() {
       margin-bottom: 20px;
     }
   </style>
+  <script>
+    function validarFormulario() {
+      // Obtener valores
+      var ssid = document.forms["formConfig"]["ssid"].value.trim();
+      var pass = document.forms["formConfig"]["pass"].value.trim();
+      var broker = document.forms["formConfig"]["broker"].value.trim();
+      var port = document.forms["formConfig"]["port"].value.trim();
+      var topic = document.forms["formConfig"]["topic"].value.trim();
+      var deviceName = document.forms["formConfig"]["nombreDispositivo"].value.trim();
+
+      // Validar SSID y PASS (ya son required, pero chequeo extra)
+      if (ssid.length === 0) {
+        alert("El campo SSID no puede estar vacío.");
+        return false;
+      }
+      if (pass.length === 0) {
+        alert("El campo Contraseña Wi-Fi no puede estar vacío.");
+        return false;
+      }
+
+      // Validar broker (solo letras, números, puntos y guiones)
+      var reBroker = /^[A-Za-z0-9\.-]+$/;
+      if (!reBroker.test(broker)) {
+        alert("Formato de Broker MQTT inválido. Solo se permiten letras, números, puntos y guiones.");
+        return false;
+      }
+
+      // Validar puerto (número entre 1 y 65535)
+      var numPort = parseInt(port, 10);
+      if (isNaN(numPort) || numPort < 1 || numPort > 65535) {
+        alert("Formato de Puerto MQTT inválido. Debe ser un número entre 1 y 65535.");
+        return false;
+      }
+
+      // Validar topic (no espacios, ni '+' ni '#')
+      var reTopic = /^[^+#\s]+$/;
+      if (!reTopic.test(topic)) {
+        alert("Formato de Topic MQTT inválido. No se permiten espacios, '+' ni '#'.");
+        return false;
+      }
+
+      // Validar nombreDispositivo (no espacios)
+      if (deviceName.length === 0 || deviceName.indexOf(' ') !== -1) {
+        alert("Formato de Nombre de Dispositivo inválido. No puede estar vacío ni contener espacios.");
+        return false;
+      }
+
+      return true;
+    }
+  </script>
 </head>
 <body>
   <div class="container">
-    <h2>Ingrese credenciales Wi-Fi</h2>
-    <form action="/save" method="POST">
-      <input type="text" name="ssid" placeholder="SSID" required><br>
-      <input type="password" name="pass" placeholder="Contraseña" required><br>
+    <h2>Configurar Wi-Fi y MQTT</h2>
+    <form name="formConfig" action="/save" method="POST" onsubmit="return validarFormulario();">
+      <!-- Wi-Fi -->
+      <input type="text"   name="ssid"              placeholder="SSID"                      required><br>
+      <input type="password" name="pass"             placeholder="Contraseña Wi-Fi"          required><br>
+      <!-- MQTT -->
+      <input type="text"   name="broker"            placeholder="Broker MQTT (IP o URL)"     required><br>
+      <input type="number" name="port"              placeholder="Puerto MQTT (ej. 1883)"     required><br>
+      <input type="text"   name="topic"             placeholder="Topic MQTT (ej. sensor/1)"  required><br>
+      <input type="text"   name="nombreDispositivo" placeholder="Nombre Dispositivo"         required><br>
       <input type="submit" value="Guardar y Conectar">
     </form>
   </div>
@@ -202,43 +222,98 @@ void WiFiCtrl::handleRoot() {
 }
 
 // ================================
-// handleSave(): lee "ssid" y "pass", valida, guarda en Preferences y reinicia
+// handleSave(): lee parámetros, valida servidor-side, guarda en Preferences y reinicia
 // ================================
 void WiFiCtrl::handleSave() {
     // 1) Leemos parámetros del POST
-    String newSSID = _server.arg("ssid");
-    String newPASS = _server.arg("pass");
+    String newSSID             = _server.arg("ssid");
+    String newPASS             = _server.arg("pass");
+    String newBroker           = _server.arg("broker");
+    String newPortStr          = _server.arg("port");
+    String newTopic            = _server.arg("topic");
+    String newNombreDispositivo = _server.arg("nombreDispositivo");
 
     // 2) Validamos que no estén vacíos
-    if (newSSID.length() == 0 || newPASS.length() == 0) {
-        _server.send(400, "text/plain", "[ERROR]: SSID o Password vacios");
+    if (newSSID.length() == 0 || newPASS.length() == 0 ||
+        newBroker.length() == 0 || newPortStr.length() == 0 ||
+        newTopic.length() == 0 || newNombreDispositivo.length() == 0) {
+        _server.send(400, "text/plain", "[ERROR]: Faltan parámetros obligatorios.");
         return;
     }
 
-    // 3) Mostramos mensaje en Serial y guardamos en Flash
-    char buf[128];
+    // 3) Validamos puerto en servidor (por si falló JS)
+    int newPort = newPortStr.toInt();
+    if (newPort <= 0 || newPort > 65535) {
+        _server.send(400, "text/plain", "[ERROR]: Puerto MQTT inválido.");
+        return;
+    }
+
+    // 4) Validamos formato de broker (solo letras, números, puntos y guiones)
+    bool brokerValido = true;
+    for (size_t i = 0; i < newBroker.length(); i++) {
+        char c = newBroker.charAt(i);
+        if (!( (c >= 'A' && c <= 'Z') ||
+               (c >= 'a' && c <= 'z') ||
+               (c >= '0' && c <= '9') ||
+               c == '.' || c == '-' )) {
+            brokerValido = false;
+            break;
+        }
+    }
+    if (!brokerValido) {
+        _server.send(400, "text/plain", "[ERROR]: Formato de Broker MQTT inválido.");
+        return;
+    }
+
+    // 5) Validamos formato de topic (no espacios, ni '+' ni '#')
+    if (newTopic.indexOf(' ') != -1 || newTopic.indexOf('+') != -1 || newTopic.indexOf('#') != -1) {
+        _server.send(400, "text/plain", "[ERROR]: Formato de Topic MQTT inválido.");
+        return;
+    }
+
+    // 6) Validamos nombreDispositivo (no espacios)
+    if (newNombreDispositivo.indexOf(' ') != -1) {
+        _server.send(400, "text/plain", "[ERROR]: Formato de Nombre de Dispositivo inválido.");
+        return;
+    }
+
+    // 7) Mostramos mensaje en Serial y guardamos en Flash
+    char buf[256];
     snprintf(buf, sizeof(buf),
-             "[INFO] Guardando credenciales → SSID: '%s', PASS: '%s'",
-             newSSID.c_str(), newPASS.c_str());
+             "[INFO] Guardando → SSID:'%s' PASS:'%s' BROKER:'%s' PORT:%d TOPIC:'%s' DEVICE:'%s'",
+             newSSID.c_str(),
+             newPASS.c_str(),
+             newBroker.c_str(),
+             newPort,
+             newTopic.c_str(),
+             newNombreDispositivo.c_str()
+    );
     reportarEstado(buf);
 
+    // Abrimos Preferences en modo escritura en namespace "config"
+    _prefs.begin("config", false);
     _prefs.putString("ssid", newSSID);
     _prefs.putString("pass", newPASS);
+    _prefs.putString("broker", newBroker);
+    _prefs.putUInt("port", static_cast<uint32_t>(newPort));
+    _prefs.putString("topic", newTopic);
+    _prefs.putString("deviceName", newNombreDispositivo);
+    _prefs.end();
 
-    // 4) Respondemos al cliente y esperamos un instante antes de reiniciar
+    // 8) Respondemos al cliente y reiniciamos
     String respuesta = R"rawliteral(
 <!DOCTYPE html>
 <html>
   <body>
-    <h3>Credenciales guardadas con exito.</h3>
-    <p>Reiniciando dispositivo para aplicar la nueva configuracion...</p>
+    <h3>Configuración guardada con éxito.</h3>
+    <p>Reiniciando dispositivo para aplicar todos los cambios...</p>
   </body>
 </html>
     )rawliteral";
     _server.send(200, "text/html", respuesta);
 
     delay(1500);      // Esperamos 1.5 s para que el navegador reciba la página
-    ESP.restart();    // Reiniciamos para que, al arrancar, lea las credenciales y se conecte
+    ESP.restart();    // Reiniciamos para que, al arrancar, lea los nuevos valores
 }
 
 // ================================
@@ -247,7 +322,7 @@ void WiFiCtrl::handleSave() {
 void WiFiCtrl::connectToWiFi(const String& ssid, const String& password) {
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid.c_str(), password.c_str());
-    // No esperamos aquí: el caller (iniciar()) maneja el timeout/éxito.
+    // El caller (iniciar()) maneja el timeout/éxito
 }
 
 // ================================

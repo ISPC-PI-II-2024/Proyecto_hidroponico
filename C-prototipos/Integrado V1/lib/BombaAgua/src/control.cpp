@@ -1,30 +1,27 @@
-#include <Arduino.h>
-#include "control.h"
+#include "Control.h"
 
-// Definición de pines
-#define RELE_PIN 26
-#define LED_VERDE 25
-#define LED_ROJO 33
+ControlBomba::ControlBomba(uint8_t relePin, uint8_t ledVerde, uint8_t ledRojo)
+    : _relePin(relePin), _ledVerde(ledVerde), _ledRojo(ledRojo) {}
 
-void setupControlPins() {
-    pinMode(RELE_PIN, OUTPUT);
-    pinMode(LED_VERDE, OUTPUT);
-    pinMode(LED_ROJO, OUTPUT);
+void ControlBomba::setup() {
+    pinMode(_relePin, OUTPUT);
+    pinMode(_ledVerde, OUTPUT);
+    pinMode(_ledRojo, OUTPUT);
 
     apagarBomba(); // Estado inicial
-    Serial.println("Pines configurados.");
+    Serial.println("Pines de control configurados.");
 }
 
-void encenderBomba() {
-    digitalWrite(RELE_PIN, HIGH);
-    digitalWrite(LED_VERDE, HIGH);
-    digitalWrite(LED_ROJO, LOW);
+void ControlBomba::encenderBomba() {
+    digitalWrite(_relePin, HIGH);
+    digitalWrite(_ledVerde, HIGH);
+    digitalWrite(_ledRojo, LOW);
     Serial.println("Bomba encendida. LED verde ON, LED rojo OFF");
 }
 
-void apagarBomba() {
-    digitalWrite(RELE_PIN, LOW);
-    digitalWrite(LED_VERDE, LOW);
-    digitalWrite(LED_ROJO, HIGH);
+void ControlBomba::apagarBomba() {
+    digitalWrite(_relePin, LOW);
+    digitalWrite(_ledVerde, LOW);
+    digitalWrite(_ledRojo, HIGH);
     Serial.println("Bomba apagada. LED verde OFF, LED rojo ON");
 }
