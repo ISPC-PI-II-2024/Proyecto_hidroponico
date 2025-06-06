@@ -9,6 +9,10 @@ public:
     void setup();
     void encenderBomba();
     void apagarBomba();
+    void ledVerdeOn();
+    void ledVerdeOff();
+    void ledRojoOn();
+    void ledRojoOff();
 
 private:
     uint8_t _relePin, _ledVerde, _ledRojo;

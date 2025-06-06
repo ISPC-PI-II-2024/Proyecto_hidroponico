@@ -29,33 +29,22 @@ void ActuadorManager::comenzar() {
 }
 
 void ActuadorManager::loop() {
-  // Actualizar patrón del buzzer (sinbloqueante)
-  _buzzer.update();
-
-  // Evaluar sensores y tomar acciones sobre actuadores
-  evaluarSensores();
+  _buzzer.update();       // Actualizar patrón del buzzer (sinbloqueante)
+  evaluarSensores();      // Evaluar sensores y tomar acciones sobre actuadores
 }
 
 void ActuadorManager::evaluarSensores() {
-  // 1) Verificar que SensorManager ya haya arrancado correctamente
-  if (_sensorMgr.getEstado() != SensorManager::Estado::Leyendo) {
-    // Si todavía no está listo o hay error, mantendremos buzzer en A_NONE
-    return;
+  if (_sensorMgr.getEstado() != SensorManager::Estado::Leyendo) { // 1) Verificar que SensorManager ya haya arrancado correctamente
+    return;                                                       // Si todavía no está listo o hay error, mantendremos buzzer en A_NONE
   }
 
   // 2) Obtener los estados de cada nodo JSON como string
-  //    Para esto, usamos el JSON que arma SensorManager: obtenerJson()
-  //    Luego parseamos solo los campos “estado” de nodos críticos.
-  String jsonSensores = _sensorMgr.obtenerJson();      // :contentReference[oaicite:3]{index=3}
+  String jsonSensores = _sensorMgr.obtenerJson();                      // Para esto, usamos el JSON que arma SensorManager: obtenerJson()
   StaticJsonDocument<1024> doc;
-  DeserializationError error = deserializeJson(doc, jsonSensores);
-  if (error) {
-    // No pudimos parsear: abortar evaluación
-    return;
-  }
+  DeserializationError error = deserializeJson(doc, jsonSensores);     // Luego parseamos solo los campos “estado” de nodos críticos.
+  if (error) return;                                                   // No pudimos parsear: abortar evaluación
 
   // 3) Leer cada “estado” (OK o ERR) desde el JSON
-  //    Podemos chequear, por ejemplo: “BMP280.estado”, “DHT11.estado”, “HC-SR04.estado”, etc.
   const char* estadoBMP   = doc["BMP280"]["estado"];
   const char* estadoDHT   = doc["DHT11"]["estado"];
   const char* estadoLux   = doc["BH1750"]["estado"];
@@ -63,7 +52,7 @@ void ActuadorManager::evaluarSensores() {
   const char* estadoCaud  = doc["Caudal"]["estado"];
   const char* estadoCO2   = doc["CO2"]["estado"];
   const char* estadoEner  = doc["Energia"]["estado"];
-  // (Puedes añadir o quitar nodos según tu configuración)
+
 
   // 4) Determinar si hay al menos un sensor en estado “ERR”
   bool hayErrorGlobal = false;
@@ -98,66 +87,23 @@ void ActuadorManager::evaluarSensores() {
 
   // 6) Ajustar buzzer si cambió el nivel de alarma
   if (nivelActual != _nivelAnterior) {
-    // Cambiar patrón de buzzer
     _buzzer.setLevel(nivelActual);
     _nivelAnterior = nivelActual;
-
-    // Notificar cambio de estado solo cuando pase a nivel distinto de A_NONE
-    if (nivelActual != A_NONE) {
-      // Construir payload JSON simple:
-      StaticJsonDocument<256> payload;
-      payload["tipo"]   = "alarma";
-      payload["nivel"]  = nivelActual;       // 1=LOW, 2=MEDIUM, 3=HIGH
-      payload["mensaje"]= hint("%s", (nivelActual==A_HIGH)
-                                ? "Alarma CRITICA"
-                                : (nivelActual==A_MEDIUM)
-                                  ? "Alarma MEDIA"
-                                  : "Alarma BAJA");
-      // Serializar y enviar por MQTT
-      String out;
-      serializeJson(payload, out);
-      notificarCambioEstado(out.c_str());
-      _hayAlertaActiva = true;
-    }
-    else {
-      // Pasó a A_NONE: quitar buzzer y notificar que todo OK
-      StaticJsonDocument<128> payload;
-      payload["tipo"]    = "alarma";
-      payload["nivel"]   = 0;
-      payload["mensaje"] = "Sistema OK";
-      String out;
-      serializeJson(payload, out);
-      notificarCambioEstado(out.c_str());
-      _hayAlertaActiva = false;
-    }
+    _hayAlertaActiva = (nivelActual != A_NONE);
   }
 
   // 7) Control de bomba según nivel de agua (“HC-SR04”):
   //    - Si distancia > umbralDistMax_ (en SensorManager), consideramos “agua bajo nivel mínimo” → encender bomba.
   //    - Si distancia <= umbralDistMax_, apagar bomba.
-  //    El umbral lo maneja internamente SensorManager. Aquí sólo usamos el estado:
+  //    El umbral lo maneja internamente SensorManager. Aca solamente usamos el estado.:
   bool distErr = (strcmp(estadoDist, "ERR") == 0);
   if (distErr && !_bombaEncendida) {
     _controlBomba.encenderBomba();
     _bombaEncendida = true;
-
-    // Notificar cambio de bomba
-    StaticJsonDocument<128> payload;
-    payload["tipo"]    = "bomba";
-    payload["estado"]  = "encendida";
-    String out; serializeJson(payload, out);
-    notificarCambioEstado(out.c_str());
   }
   else if (!distErr && _bombaEncendida) {
     _controlBomba.apagarBomba();
     _bombaEncendida = false;
-
-    // Notificar cambio de bomba
-    StaticJsonDocument<128> payload;
-    payload["tipo"]    = "bomba";
-    payload["estado"]  = "apagada";
-    String out; serializeJson(payload, out);
-    notificarCambioEstado(out.c_str());
   }
 
   // 8) Control de LED VERDE/ROJO:
@@ -172,18 +118,10 @@ void ActuadorManager::evaluarSensores() {
   }
 }
 
-void ActuadorManager::notificarCambioEstado(const char* mensaje) {
-  // Envía el payload por MQTT solamente si CommunicationManager está conectado
-  if (_comms.obtenerEstado() == CommunicationManager::State::Conectado) {
-    _comms.publicar(_topicAlarmas, mensaje);
-  }
-}
-
-
+// 9) Notificar cambios de estado si hay alerta activa
 AlarmLevel ActuadorManager::getNivelAlarma() const {
   return _nivelAnterior;
 }
-
 bool ActuadorManager::isBombaEncendida() const {
   return _bombaEncendida;
 }

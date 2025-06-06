@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <ArduinoJson.h>
+#include <ConfigHardware.h>
 
 //----------------------------------
 // Funciones auxiliares para caudalímetro
@@ -24,14 +25,14 @@ SensorManager::SensorManager(
     uint8_t pin_caudalimetro, float factor_caudal,
     uint8_t pin_co2
 )
-  : bmp_(PIN_I2C_SDA, PIN_I2C_SCL)                                  // Ahora acepta pines I2C
-  , dht_(PIN_DHT11)                                                 // DHT11 con pin
-  , bh1750_(PIN_BH1750_SDA, PIN_BH1750_SCL)                         // BH1750 con I2C configurable
-  , sr04_(PIN_HC_SR04_TRIG, PIN_HC_SR04_ECHO)                       // Pines en el constructor
-  , caudalimetro_(PIN_CAUDALIMETRO, FACTOR_CAUDAL)                  // Caudalímetro parametrizado
-  , rtc_()                                                          // RTC usa Wire por defecto, pines por begin()
-  , co2_(PIN_CO2)                                                   // Sensor CO2 con pin configurable
-  , moduloEnergia_(Wire)                                            // Módulo energía acepta Wire
+  : bmp_(PIN_I2C_SDA, PIN_I2C_SCL)                        // Ahora acepta pines I2C
+  , dht_(PIN_DHT11)                                       // DHT11 con pin
+  , bh1750_(PIN_BH1750_SDA, PIN_BH1750_SCL)               // BH1750 con I2C configurable
+  , sr04_()                                               // Pines en el constructor
+  , caudalimetro_(PIN_CAUDALIMETRO, FACTOR_CAUDAL)        // Caudalímetro parametrizado
+  , rtc_()                                                // RTC usa Wire por defecto, pines por begin()
+  , co2_(PIN_CO2)                                         // Sensor CO2 con pin configurable
+  , moduloEnergia_(Wire)                                  // Módulo energía acepta Wire
 
   // Valores arbitrarios iniciales; luego se sobrescriben con NVS
   , tempBMP_(NAN)
@@ -107,7 +108,7 @@ void SensorManager::comenzar() {
   }
 
   // 2.5) HC-SR04 (pines definidos en el constructor)
-  sr04_.begin(PIN_HC_SR04_TRIG, PIN_HC_SR04_ECHO);
+  sr04_.begin(PIN_HCSR04_TRIG, PIN_HCSR04_ECHO);
 
   // 2.6) Caudalímetro (no requiere begin; simplemente usar ISR y setPulsosCaudal)
 

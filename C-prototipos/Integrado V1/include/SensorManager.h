@@ -37,11 +37,6 @@
 //     }
 //
 
-// Definición de pines por defecto (ajustar según tu placa)
-#define PIN_CO2          35   // Pin analógico para CO2 (ADC1_7 en ESP32)
-#define PIN_HC_SR04_TRIG 12
-#define PIN_HC_SR04_ECHO 14
-
 class SensorManager {
 public:
   //-----------------------------------

@@ -25,3 +25,9 @@ void ControlBomba::apagarBomba() {
     digitalWrite(_ledRojo, HIGH);
     Serial.println("Bomba apagada. LED verde OFF, LED rojo ON");
 }
+
+
+void ControlBomba::ledVerdeOn()  { digitalWrite(_ledVerde, HIGH); }
+void ControlBomba::ledVerdeOff() { digitalWrite(_ledVerde, LOW); }
+void ControlBomba::ledRojoOn()   { digitalWrite(_ledRojo, HIGH); }
+void ControlBomba::ledRojoOff()  { digitalWrite(_ledRojo, LOW); }
