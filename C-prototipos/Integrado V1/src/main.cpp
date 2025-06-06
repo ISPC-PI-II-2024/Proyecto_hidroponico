@@ -27,9 +27,9 @@ ActuadorManager* actuadorMgr = nullptr;
 // --- Estado para detectar cambios de alarma ---
 int nivelAlarmaAnterior = 0;
 
-// --- Estado para detectar cambios de alarma ---
-int nivelAlarmaAnterior = 0;  // Arranca por defecto sin alarmas.
-
+// --- declaración de funciones ---
+void enviarJsonCompuesto();
+void enviarAlarma(int nivel);
 
 // -----------------------------------
 // SETUP

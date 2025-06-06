@@ -37,7 +37,7 @@ void WiFiCtrl::iniciar() {
     // 4) Verificamos si el botón está presionado (LOW) o no hay credenciales guardadas
     if (digitalRead(_buttonPin) == LOW || savedSSID.length() == 0 || savedPASS.length() == 0) {
         // Entramos en modo Access Point para configurar
-        _estado = State::Config;
+        _estado = State::PortalActivo;
         _configMode = true;
 
         // Arrancamos AP
@@ -63,7 +63,7 @@ void WiFiCtrl::iniciar() {
 
     } else {
         // 5) Tenemos credenciales Wi-Fi; arrancamos en modo estación
-        _estado = State::Connect;
+        _estado = State::Conectado;
         _configMode = false;
 
         // Conectamos a Wi-Fi con savedSSID y savedPASS
@@ -330,4 +330,15 @@ void WiFiCtrl::connectToWiFi(const String& ssid, const String& password) {
 // ================================
 void WiFiCtrl::reportarEstado(const char* msg) {
     _serial.println(String("[INFO] [WiFiCtrl] -> ") + msg);
+}
+
+
+WiFiCtrl::State WiFiCtrl::obtenerEstado() const {
+    return _estado;  // Devuelve el estado actual
+}
+
+void WiFiCtrl::handleClient() {
+    if (_configMode) {
+        _server.handleClient(); // Atiende HTTP solo si estamos en modo AP/Portal
+    }
 }

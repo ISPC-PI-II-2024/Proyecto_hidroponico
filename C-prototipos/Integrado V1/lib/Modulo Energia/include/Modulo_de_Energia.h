@@ -1,9 +1,9 @@
 #ifndef MODULO_DE_ENERGIA_H
 #define MODULO_DE_ENERGIA_H
 
-#include <Arduino.h> // Incluye los tipos estándar de Arduino y Wire.h
-// Si Wire.h no es incluido por Arduino.h en tu toolchain de prueba, inclúyelo explícitamente.
-// #include <Wire.h> // Será el mock en el entorno de prueba
+#include <Arduino.h>
+#include <Wire.h>
+
 
 // Suposiciones de Hardware y Protocolo
 #define I2C_ADDRESS_SENSOR 0x40           // Dirección I2C del sensor de energía

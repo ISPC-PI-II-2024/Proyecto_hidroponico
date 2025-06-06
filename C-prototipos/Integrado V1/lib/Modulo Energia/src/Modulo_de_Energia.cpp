@@ -6,44 +6,41 @@ Modulo_de_Energia::Modulo_de_Energia(TwoWire &wire)
 
 // Inicializa el módulo de energía y verifica la comunicación con el sensor
 void Modulo_de_Energia::begin() {
-    _wire->begin(); // Inicializa la comunicación I2C
-    // Intenta una comunicación inicial para verificar la conexión con el sensor
-    _wire->beginTransmission(I2C_ADDRESS_SENSOR);
+    _wire->begin();                                     // Inicializa la comunicación I2C
+    _wire->beginTransmission(I2C_ADDRESS_SENSOR);       // Intenta una comunicación inicial para verificar la conexión con el sensor
     if (_wire->endTransmission() == 0) {
-        _communicationOK = true; // Comunicación exitosa
+        _communicationOK = true;                        // Comunicación exitosa
     } else {
-        _communicationOK = false; // Fallo en la comunicación
+        _communicationOK = false;                       // Fallo en la comunicación
     }
-    // Realiza una lectura inicial para poblar _lastVoltage y _lastCurrent
-    if (_communicationOK) {
-        getVoltage(); // Actualiza _lastVoltage y _communicationOK
-        if (_communicationOK) { // Solo lee corriente si el voltaje fue exitoso
-             getCurrent(); // Actualiza _lastCurrent y _communicationOK
+    
+    if (_communicationOK) {                             // Realiza una lectura inicial para poblar _lastVoltage y _lastCurrent
+        getVoltage();                                   // Actualiza _lastVoltage y _communicationOK
+        if (_communicationOK) {                         // Solo lee corriente si el voltaje fue exitoso
+             getCurrent();                              // Actualiza _lastCurrent y _communicationOK
         }
     } else {
-        _lastVoltage = -1.0f; // Indica error en la lectura de voltaje
-        _lastCurrent = -1.0f; // Indica error en la lectura de corriente
+        _lastVoltage = -1.0f;                           // Indica error en la lectura de voltaje
+        _lastCurrent = -1.0f;                           // Indica error en la lectura de corriente
     }
 }
 
-// Devuelve el estado de la comunicación I2C
-bool Modulo_de_Energia::isCommunicationOK() const {
+bool Modulo_de_Energia::isCommunicationOK() const {     // Devuelve el estado de la comunicación I2C
     return _communicationOK;
 }
 
-// Lee un valor crudo (raw) de un registro específico del sensor
-uint16_t Modulo_de_Energia::readRawValue(uint8_t reg) {
+
+uint16_t Modulo_de_Energia::readRawValue(uint8_t reg) { // Lee un valor crudo (raw) de un registro específico del sensor
     if (!_communicationOK) { 
-        // Si la comunicación ya falló, retorna un valor de error inmediatamente.
-        return 0;
+        return 0;                                       // Si la comunicación ya falló, retorna un valor de error inmediatamente.   
     }
 
-    _wire->beginTransmission(I2C_ADDRESS_SENSOR); // Inicia transmisión I2C
-    _wire->write(reg); // Escribe el registro a leer
-    uint8_t txStatus = _wire->endTransmission(false); // false para enviar un restart y mantener la conexión
+    _wire->beginTransmission(I2C_ADDRESS_SENSOR);       // Inicia transmisión I2C
+    _wire->write(reg);                                  // Escribe el registro a leer
+    uint8_t txStatus = _wire->endTransmission(false);   // false para enviar un restart y mantener la conexión
 
     if (txStatus != 0) {
-        _communicationOK = false; // Error en la transmisión o el sensor no hizo ACK
+        _communicationOK = false;                       // Error en la transmisión o el sensor no hizo ACK
         return 0; 
     }
 
@@ -51,13 +48,13 @@ uint16_t Modulo_de_Energia::readRawValue(uint8_t reg) {
     uint8_t bytesReceived = _wire->requestFrom((uint8_t)I2C_ADDRESS_SENSOR, (uint8_t)2, (uint8_t)true); // true para enviar stop
 
     if (bytesReceived != 2) {
-        _communicationOK = false; // No se recibieron los 2 bytes esperados
+        _communicationOK = false;                       // No se recibieron los 2 bytes esperados
         return 0;
     }
 
     // Leer los dos bytes (MSB primero)
     uint16_t value = ((uint16_t)_wire->read() << 8) | _wire->read();
-    _communicationOK = true; // Si llegamos aquí, la comunicación fue exitosa para esta lectura
+    _communicationOK = true;                            // Si llegamos aquí, la comunicación fue exitosa para esta lectura
     return value;
 }
 
