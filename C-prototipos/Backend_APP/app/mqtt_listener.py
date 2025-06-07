@@ -71,7 +71,13 @@ class MQTTListener:
             logger.error(f"Error parseando JSON en topic '{msg.topic}': {e}")
             return
 
-        if any(msg.topic.startswith(t) for t in settings.mqtt_topics):
+        if msg.topic.startswith('info/dispositivo'):
+            mariadb_serv.procesar_info_inicial(data)
+        elif msg.topic.startswith('lectura/dispositivo'):
+            mariadb_serv.procesar_lectura(data)
+        elif msg.topic.startswith('alerta/dispositivo'):
+            mariadb_serv.procesar_alarma(data)
+        elif any(msg.topic.startswith(t) for t in settings.mqtt_topics):
             try:
                 # Validación del modelo de datos
                 mensaje = GatewayMessage.parse_obj(data)

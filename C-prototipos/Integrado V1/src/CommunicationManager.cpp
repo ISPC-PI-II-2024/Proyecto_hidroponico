@@ -16,7 +16,9 @@ CommunicationManager::CommunicationManager(HardwareSerial& consoleSerial,
                                            const char* wifiPass,
                                            const char* mqttHost,
                                            uint16_t mqttPort,
-                                           const char* mqttTopic,
+                                           const char* topicInfo,
+                                           const char* topicLectura,
+                                           const char* topicAlarma,
                                            const char* mqttUser,
                                            const char* mqttPass,
                                            unsigned long wifiTimeoutMs,
@@ -36,7 +38,9 @@ CommunicationManager::CommunicationManager(HardwareSerial& consoleSerial,
   , wifiPass_(wifiPass)
   , mqttHost_(mqttHost)
   , mqttPort_(mqttPort)
-  , mqttTopic_(mqttTopic)
+  , topicInfo_(topicInfo)
+  , topicLectura_(topicLectura)
+  , topicAlarma_(topicAlarma)
   , mqttUser_(mqttUser)
   , mqttPass_(mqttPass)
   , wifiStartMs_(0)
@@ -197,7 +201,7 @@ void CommunicationManager::iniciaGSM() {
 // iniciaMQTT(): llama a mqttMgr_.begin(...) con los parámetros recibidos
 //------------------------------------------------------------------------------
 void CommunicationManager::iniciaMQTT() {
-  mqttMgr_.begin(mqttHost_, mqttPort_, mqttTopic_, mqttUser_, mqttPass_);
+  mqttMgr_.begin(mqttHost_, mqttPort_, mqttTopicLectura_, mqttUser_, mqttPass_);
 }
 
 //------------------------------------------------------------------------------
@@ -213,3 +217,4 @@ bool CommunicationManager::wifiTimedOut() const {
 bool CommunicationManager::gsmTimedOut() const {
   return (millis() - gsmStartMs_) > gsmTimeoutMs_;
 }
+

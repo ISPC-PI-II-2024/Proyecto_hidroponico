@@ -9,11 +9,18 @@
 
 // --- Pines traidos desde ConfigHardware.h ---
 
+// ANSI colors (para seriales compatibles como PlatformIO)
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define RESET   "\033[0m"
+
 // --- Topicos ---
 const char* TOPIC_TELEMETRIA = "mediciones/dispositivo";
 const char* TOPIC_ALARMAS    = "alarmas/dispositivo";
 
 // --- Variables de configuración ---
+String topicInfo, topicLectura, topicAlarma;
 Preferences prefs;
 String ssid, pass, broker, topic, deviceName, mqttUser, mqttPass;
 uint16_t port;
@@ -30,6 +37,7 @@ int nivelAlarmaAnterior = 0;
 // --- declaración de funciones ---
 void enviarJsonCompuesto();
 void enviarAlarma(int nivel);
+void imprimirEstadoDispositivo();
 
 // -----------------------------------
 // SETUP
@@ -48,6 +56,9 @@ void setup() {
     intervaloPublicacion = prefs.getUInt("intervaloPublicacion", 60000);
     mqttUser             = prefs.getString("mqttUser", "");
     mqttPass             = prefs.getString("mqttPass", "");
+    topicInfo            = prefs.getString("topicInfo", "info/default");
+    topicLectura         = prefs.getString("topicLectura", "lecturas/default");
+    topicAlarma          = prefs.getString("topicAlarma", "alarmas/default");
     prefs.end();
 
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
@@ -83,6 +94,7 @@ void setup() {
     // --- setear estado inicial de alarma ---
     nivelAlarmaAnterior = actuadorMgr->getNivelAlarma();
 
+    enviarInformacionDispositivo();
     Serial.println("[INFO] Setup completo.");
 }
 
@@ -101,6 +113,7 @@ void loop() {
     if (now - lastPub > intervaloPublicacion) {
         lastPub = now;
         enviarJsonCompuesto();
+        imprimirEstadoDispositivo();
     }
 
     int nivelAlarmaActual = actuadorMgr->getNivelAlarma();
@@ -160,5 +173,71 @@ void enviarAlarma(int nivel) {
     serializeJson(payload, out);
     commMgr->publicar(TOPIC_ALARMAS, out.c_str());
     Serial.println("[INFO] Alarma publicada:");
+    Serial.println(out);
+}
+
+// -----------------------------------
+void imprimirEstadoDispositivo() {
+    Serial.println(YELLOW "\n========= ESTADO DEL DISPOSITIVO =========" RESET);
+
+    String jsonSensores = sensorMgr->obtenerJson();
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, jsonSensores);
+
+    const char* sensores[] = { "BMP280", "DHT11", "BH1750", "HC-SR04", "Caudal", "CO2", "Energia" };
+    for (const char* s : sensores) {
+        const char* estado = doc[s]["estado"] | "desconocido";
+        const char* color  = strcmp(estado, "OK") == 0 ? GREEN : RED;
+        Serial.printf("%s[SENSOR]  %-9s: %s%s\n", color, s, estado, RESET);
+    }
+
+    Serial.printf("%s[ACTUADOR] Bomba      : %s%s\n", 
+        actuadorMgr->isBombaEncendida() ? GREEN : RED,
+        actuadorMgr->isBombaEncendida() ? "ON" : "OFF",
+        RESET);
+
+    Serial.printf("%s[ACTUADOR] Alarma     : Nivel %d%s\n", 
+        actuadorMgr->getNivelAlarma() > 0 ? RED : GREEN,
+        actuadorMgr->getNivelAlarma(),
+        RESET);
+
+    Serial.printf("%s[COMMS]    Wi-Fi      : %s%s\n",
+        commMgr->redHabilitada() ? GREEN : RED,
+        commMgr->redHabilitada() ? "CONECTADO" : "DESCONECTADO",
+        RESET);
+
+    // MQTT y GSM son privados → podés expandir CommunicationManager con funciones públicas si querés:
+    // Por ahora asumimos solo `redHabilitada()` como resumen de ambos.
+
+    Serial.println(YELLOW "============================================\n" RESET);
+    }
+void enviarInformacionDispositivo() {
+    DynamicJsonDocument doc(1024);
+    doc["device"] = deviceName;
+    doc["evento"] = "inicio";
+
+    JsonArray sensores = doc.createNestedArray("sensores");
+    JsonObject s1 = sensores.createNestedObject();
+    s1["nombre"] = "DHT11";
+    s1["pin"] = PIN_DHT11;
+    s1["umbralTempMax"] = prefs.getFloat("umbralTempMax", 35.0);
+    s1["umbralHumMin"] = prefs.getFloat("umbralHumMin", 30.0);
+
+    JsonObject s2 = sensores.createNestedObject();
+    s2["nombre"] = "BMP280";
+    s2["pin"] = -1;
+    s2["umbralPresionMin"] = prefs.getFloat("umbralPresionMin", 950.0);
+
+    JsonArray actuadores = doc.createNestedArray("actuadores");
+    JsonObject a1 = actuadores.createNestedObject();
+    a1["nombre"] = "BOMBA";
+    a1["pin"] = PIN_RELE_BOMBA;
+    a1["estado"] = actuadorMgr->isBombaEncendida() ? "ON" : "OFF";
+
+    String out;
+    serializeJson(doc, out);
+    commMgr->publicar(topicInfo.c_str(), out.c_str());
+
+    Serial.println("[INFO] Mensaje de inicio publicado:");
     Serial.println(out);
 }

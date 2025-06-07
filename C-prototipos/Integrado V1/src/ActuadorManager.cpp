@@ -1,5 +1,6 @@
 #include "ActuadorManager.h"
-#include <ArduinoJson.h> // Útil para construir payload MQTT en formato JSON
+#include <ArduinoJson.h>
+#include <Preferences.h>
 
 ActuadorManager::ActuadorManager(uint8_t pinBuzzer,
                                  uint8_t pinReleBomba,
@@ -26,6 +27,24 @@ void ActuadorManager::comenzar() {
   _nivelAnterior   = A_NONE;   // Nivel de alarma anterior es A_NONE
   _controlBomba.apagarBomba(); // Aseguramos que la bomba esté apagada al inicio
   _bombaEncendida = false;     // Estado de bomba apagada al inicio
+
+
+
+  // Cargar umbrales desde NVS (Preferences)
+  Preferences prefs;
+  prefs.begin("umbrales", true);  // true = solo lectura
+
+  _umbralDistMax   = prefs.getFloat("umbralDistMax",    30.0);
+  _umbralTempMax   = prefs.getFloat("umbralTempMax",    35.0);
+  _umbralHumMin    = prefs.getFloat("umbralHumMin",     30.0);
+  _umbralPresMin   = prefs.getFloat("umbralPresionMin", 950.0);
+  _umbralLuxMin    = prefs.getFloat("umbralLuxMin",     200.0);
+  _umbralCaudalMin = prefs.getFloat("umbralCaudalMin",  1.0);
+  _umbralCO2Max    = prefs.getFloat("umbralCO2Max",     1000.0);
+  _umbralVoltMin   = prefs.getFloat("umbralVoltMin",    3.0);
+  _umbralCorrMin   = prefs.getFloat("umbralCorrMin",    0.05);
+
+  prefs.end();
 }
 
 void ActuadorManager::loop() {
@@ -42,86 +61,82 @@ void ActuadorManager::evaluarSensores() {
   String jsonSensores = _sensorMgr.obtenerJson();                      // Para esto, usamos el JSON que arma SensorManager: obtenerJson()
   StaticJsonDocument<1024> doc;
   DeserializationError error = deserializeJson(doc, jsonSensores);     // Luego parseamos solo los campos “estado” de nodos críticos.
-  if (error) return;                                                   // No pudimos parsear: abortar evaluación
+  if (error) return;
+  
+  // Detectar error en sensores (Se informan con el LED, no con buzzer)
+  bool errorDetectado = false;
+  const char* sensores[] = { "BMP280", "DHT11", "BH1750", "HC-SR04", "Caudal", "CO2", "Energia" };
+  for (const char* s : sensores) {
+    if (strcmp(doc[s]["estado"], "ERR") == 0) {
+      errorDetectado = true;
+      break;
+    }
+  }
 
-  // 3) Leer cada “estado” (OK o ERR) desde el JSON
-  const char* estadoBMP   = doc["BMP280"]["estado"];
-  const char* estadoDHT   = doc["DHT11"]["estado"];
-  const char* estadoLux   = doc["BH1750"]["estado"];
-  const char* estadoDist  = doc["HC-SR04"]["estado"];
-  const char* estadoCaud  = doc["Caudal"]["estado"];
-  const char* estadoCO2   = doc["CO2"]["estado"];
-  const char* estadoEner  = doc["Energia"]["estado"];
+  if (errorDetectado) {
+    _controlBomba.ledRojoOn();
+    _controlBomba.ledVerdeOff();
+    _buzzer.setLevel(A_NONE);  // Silencio
+    return;
+  }// No pudimos parsear: abortar evaluación
 
+    // -------------------------------
+  // Evaluar distValor para bomba
+  float distValor = doc["HC-SR04"]["valor"];
+  if (distValor > _umbralDistMax && !_bombaEncendida) {
+    _controlBomba.encenderBomba();
+    _bombaEncendida = true;
+  } else if (distValor <= _umbralDistMax && _bombaEncendida) {
+    _controlBomba.apagarBomba();
+    _bombaEncendida = false;
+  }
 
-  // 4) Determinar si hay al menos un sensor en estado “ERR”
-  bool hayErrorGlobal = false;
-  if (strcmp(estadoBMP, "ERR")  == 0) hayErrorGlobal = true;
-  if (strcmp(estadoDHT, "ERR")  == 0) hayErrorGlobal = true;
-  if (strcmp(estadoLux, "ERR")  == 0) hayErrorGlobal = true;
-  if (strcmp(estadoDist, "ERR") == 0) hayErrorGlobal = true;
-  if (strcmp(estadoCaud, "ERR") == 0) hayErrorGlobal = true;
-  if (strcmp(estadoCO2, "ERR")  == 0) hayErrorGlobal = true;
-  if (strcmp(estadoEner, "ERR") == 0) hayErrorGlobal = true;
+  // -------------------------------
+  // Evaluar valores para activar buzzer por umbrales
+  float temp = doc["DHT11"]["valor"];
+  float hum  = doc["DHT11"]["humedad"];
+  float pres = doc["BMP280"]["valor"];
+  float lux  = doc["BH1750"]["valor"];
+  float caud = doc["Caudal"]["valor"];
+  float co2  = doc["CO2"]["valor"];
+  float volt = doc["Energia"]["voltaje"];
+  float corr = doc["Energia"]["corriente"];
 
-  // 5) Definir nivel de alarma según gravedad (por ejemplo, cantidad o tipo de error)
-  //    Aquí proponemos:
-  //      - A_HIGH: si “CO2” o “Energia” están en ERR (considerados críticos)
-  //      - A_MEDIUM: si “BMP280” o “DHT11” están en ERR (temperatura/humedad)
-  //      - A_LOW: si cualquier otro sensor (luz, distancia, caudal) está en ERR
+  // -------------------------------
+  // Evaluar alarmas según umbrales definidos
+    bool alarmaAlta =
+    (co2 > _umbralCO2Max || volt < _umbralVoltMin || corr < _umbralCorrMin);
+  bool alarmaMedia =
+    (temp > _umbralTempMax || hum < _umbralHumMin);
+  bool alarmaBaja =
+    (pres < _umbralPresMin || lux < _umbralLuxMin || caud < _umbralCaudalMin);
+
   AlarmLevel nivelActual = A_NONE;
-  if (strcmp(estadoCO2, "ERR") == 0 || strcmp(estadoEner, "ERR") == 0) {
-    nivelActual = A_HIGH;
-  }
-  else if (strcmp(estadoBMP, "ERR") == 0 || strcmp(estadoDHT, "ERR") == 0) {
-    nivelActual = A_MEDIUM;
-  }
-  else if (strcmp(estadoLux, "ERR") == 0 ||
-           strcmp(estadoDist, "ERR") == 0 ||
-           strcmp(estadoCaud, "ERR") == 0) {
-    nivelActual = A_LOW;
-  }
-  else {
-    nivelActual = A_NONE;
-  }
+  if (alarmaAlta) nivelActual = A_HIGH;
+  else if (alarmaMedia) nivelActual = A_MEDIUM;
+  else if (alarmaBaja) nivelActual = A_LOW;
 
-  // 6) Ajustar buzzer si cambió el nivel de alarma
   if (nivelActual != _nivelAnterior) {
     _buzzer.setLevel(nivelActual);
     _nivelAnterior = nivelActual;
     _hayAlertaActiva = (nivelActual != A_NONE);
   }
 
-  // 7) Control de bomba según nivel de agua (“HC-SR04”):
-  //    - Si distancia > umbralDistMax_ (en SensorManager), consideramos “agua bajo nivel mínimo” → encender bomba.
-  //    - Si distancia <= umbralDistMax_, apagar bomba.
-  //    El umbral lo maneja internamente SensorManager. Aca solamente usamos el estado.:
-  bool distErr = (strcmp(estadoDist, "ERR") == 0);
-  if (distErr && !_bombaEncendida) {
-    _controlBomba.encenderBomba();
-    _bombaEncendida = true;
-  }
-  else if (!distErr && _bombaEncendida) {
-    _controlBomba.apagarBomba();
-    _bombaEncendida = false;
-  }
-
-  // 8) Control de LED VERDE/ROJO:
-  //    - Si hay nivelActual == A_NONE → encender LED verde, apagar rojo
-  //    - Si nivelActual != A_NONE → encender LED rojo, apagar verde
+  // -------------------------------
+  // LEDS
   if (nivelActual == A_NONE) {
-      _controlBomba.ledVerdeOn();
-      _controlBomba.ledRojoOff();
+    _controlBomba.ledVerdeOn();
+    _controlBomba.ledRojoOff();
   } else {
-      _controlBomba.ledVerdeOff();
-      _controlBomba.ledRojoOn();
+    _controlBomba.ledVerdeOff();
+    _controlBomba.ledRojoOn();
   }
 }
 
-// 9) Notificar cambios de estado si hay alerta activa
 AlarmLevel ActuadorManager::getNivelAlarma() const {
   return _nivelAnterior;
 }
+
 bool ActuadorManager::isBombaEncendida() const {
   return _bombaEncendida;
 }

@@ -211,13 +211,7 @@ void WiFiCtrl::handleRoot() {
       <input type="number" name="port"              placeholder="Puerto MQTT (ej. 1883)"     required><br>
       <input type="text"   name="topic"             placeholder="Topic MQTT (ej. sensor/1)"  required><br>
       <input type="text"   name="nombreDispositivo" placeholder="Nombre Dispositivo"         required><br>
-      
-      <input type="text"   name="mqttUser"         placeholder="Usuario MQTT (opcional)"><br>
-      <input type="password" name="mqttPass"       placeholder="Contraseña MQTT (opcional)"><br>
-      <input type="text"   name="topicInfo"        placeholder="Tópico Información"><br>
-      <input type="text"   name="topicLectura"     placeholder="Tópico Lecturas"><br>
-      <input type="text"   name="topicAlarma"      placeholder="Tópico Alarmas"><br>
-<input type="submit"
+      <input type="submit" value="Guardar y Conectar">
     </form>
   </div>
 </body>
@@ -303,28 +297,7 @@ void WiFiCtrl::handleSave() {
     _prefs.putString("broker", newBroker);
     _prefs.putUInt("port", static_cast<uint32_t>(newPort));
     _prefs.putString("topic", newTopic);
-    
-    String newMqttUser          = _server.arg("mqttUser");
-    String newMqttPass          = _server.arg("mqttPass");
-    String newTopicInfo         = _server.arg("topicInfo");
-    String newTopicLectura      = _server.arg("topicLectura");
-    String newTopicAlarma       = _server.arg("topicAlarma");
-
-    if (newBroker.length() == 0) newBroker = "test.mosquitto.org";
-    if (newPortStr.length() == 0) newPort = 1883;
-    if (newMqttUser.length() == 0) newMqttUser = "";
-    if (newMqttPass.length() == 0) newMqttPass = "";
-    if (newTopicInfo.length() == 0) newTopicInfo = "info/default";
-    if (newTopicLectura.length() == 0) newTopicLectura = "lecturas/default";
-    if (newTopicAlarma.length() == 0) newTopicAlarma = "alarmas/default";
-
     _prefs.putString("deviceName", newNombreDispositivo);
-    _prefs.putString("mqttUser", newMqttUser);
-    _prefs.putString("mqttPass", newMqttPass);
-    _prefs.putString("topicInfo", newTopicInfo);
-    _prefs.putString("topicLectura", newTopicLectura);
-    _prefs.putString("topicAlarma", newTopicAlarma);
-
     _prefs.end();
 
     // 8) Respondemos al cliente y reiniciamos

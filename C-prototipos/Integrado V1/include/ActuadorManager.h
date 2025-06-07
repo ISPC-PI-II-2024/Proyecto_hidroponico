@@ -55,6 +55,17 @@ private:
 
   // Variables internas para tomar acciones en bomba/LED
   bool _bombaEncendida;
+
+  // Umbrales cargados desde Preferences
+  float _umbralDistMax;
+  float _umbralTempMax;
+  float _umbralHumMin;
+  float _umbralPresMin;
+  float _umbralLuxMin;
+  float _umbralCaudalMin;
+  float _umbralCO2Max;
+  float _umbralVoltMin;
+  float _umbralCorrMin;
 };
 
 #endif 

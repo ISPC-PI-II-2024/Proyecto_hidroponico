@@ -52,7 +52,9 @@ public:
                        const char* wifiPass,
                        const char* mqttHost,
                        uint16_t mqttPort,
-                       const char* mqttTopic,
+                       const char* mqttTopicInfo,
+                       const char* mqttTopicLectura,
+                       const char* mqttTopicAlarma,
                        const char* mqttUser = nullptr,
                        const char* mqttPass = nullptr,
                        unsigned long wifiTimeoutMs = 15000,
@@ -101,7 +103,9 @@ private:
   const char*     wifiPass_;
   const char*     mqttHost_;
   uint16_t        mqttPort_;
-  const char*     mqttTopic_;
+  const char*     mqttTopicInfo_;
+  const char*     mqttTopicLectura_;
+  const char*     mqttTopicAlarma_;
   const char*     mqttUser_;
   const char*     mqttPass_;
 

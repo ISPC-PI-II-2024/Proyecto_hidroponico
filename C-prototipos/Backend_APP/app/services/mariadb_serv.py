@@ -118,3 +118,122 @@ def guardarDatos(msg: GatewayMessage) -> None:
 
         conn.commit()
     logger.info("Información de dispositivos, sensores y controles escrita en MariaDB.")
+
+
+
+
+# ========================================
+# NUEVAS FUNCIONES PARA TOPICOS MQTT
+# ========================================
+
+def obtener_id_sistema(conn, nombre_dispositivo: str) -> Optional[int]:
+    result = conn.execute(sa.text("""
+        SELECT id_sistema FROM sistemas WHERE nombre = :nombre
+    """), {'nombre': nombre_dispositivo}).fetchone()
+    return result[0] if result else None
+
+def procesar_info_inicial(data: dict):
+    logger.info(f"[INFO] Procesando configuración inicial para dispositivo '{data.get('device')}'")
+    with _engine.connect() as conn:
+        nombre = data["device"]
+        id_sistema = obtener_id_sistema(conn, nombre)
+
+        if not id_sistema:
+            conn.execute(sa.text("""
+                INSERT INTO sistemas (nombre, fecha_instalacion) VALUES (:nombre, CURDATE())
+            """), {'nombre': nombre})
+            id_sistema = conn.execute(sa.text("""
+                SELECT id_sistema FROM sistemas WHERE nombre = :nombre
+            """), {'nombre': nombre}).scalar()
+
+        # Guardar sensores
+        for s in data.get("sensores", []):
+            conn.execute(sa.text("""
+                INSERT INTO sensores (nombre, tipo, pin_entrada, id_sistema)
+                VALUES (:nombre, 'desconocido', :pin, :id_sistema)
+                ON DUPLICATE KEY UPDATE pin_entrada = :pin
+            """), {
+                'nombre': s['nombre'],
+                'pin': s['pin'],
+                'id_sistema': id_sistema
+            })
+
+            if "umbralTempMax" in s:
+                conn.execute(sa.text("""
+                    INSERT INTO umbrales (tipo_sensor, valor_min, valor_max, id_sistema)
+                    VALUES ('temperatura', NULL, :max, :id_sistema)
+                """), {'max': s['umbralTempMax'], 'id_sistema': id_sistema})
+            if "umbralHumMin" in s:
+                conn.execute(sa.text("""
+                    INSERT INTO umbrales (tipo_sensor, valor_min, valor_max, id_sistema)
+                    VALUES ('humedad', :min, NULL, :id_sistema)
+                """), {'min': s['umbralHumMin'], 'id_sistema': id_sistema})
+            if "umbralPresionMin" in s:
+                conn.execute(sa.text("""
+                    INSERT INTO umbrales (tipo_sensor, valor_min, valor_max, id_sistema)
+                    VALUES ('presion', :min, NULL, :id_sistema)
+                """), {'min': s['umbralPresionMin'], 'id_sistema': id_sistema})
+
+        # Guardar actuadores
+        for a in data.get("actuadores", []):
+            conn.execute(sa.text("""
+                INSERT INTO actuadores (nombre, tipo, estado_actual, pin_salida, id_sistema)
+                VALUES (:nombre, 'rele', :estado, :pin, :id_sistema)
+                ON DUPLICATE KEY UPDATE estado_actual = :estado, pin_salida = :pin
+            """), {
+                'nombre': a['nombre'],
+                'estado': a['estado'],
+                'pin': a['pin'],
+                'id_sistema': id_sistema
+            })
+
+        conn.commit()
+
+def procesar_lectura(data: dict):
+    logger.info(f"[LECTURA] Procesando lectura para '{data.get('device')}'")
+    with _engine.connect() as conn:
+        id_sistema = obtener_id_sistema(conn, data["device"])
+        if not id_sistema:
+            logger.error(f"No se encontró el sistema con nombre '{data['device']}'")
+            return
+
+        sensores = data.get("sensores", {})
+        fecha_hora = datetime.fromtimestamp(data.get("timestamp", datetime.now().timestamp()))
+
+        for nombre_sensor, valores in sensores.items():
+            if isinstance(valores, dict) and "valor" in valores:
+                sensor_row = conn.execute(sa.text("""
+                    SELECT id_sensores FROM sensores
+                    WHERE nombre = :nombre AND id_sistema = :id_sistema
+                """), {'nombre': nombre_sensor, 'id_sistema': id_sistema}).fetchone()
+                if sensor_row:
+                    conn.execute(sa.text("""
+                        INSERT INTO lecturas (id_sensor, valor, fecha_hora)
+                        VALUES (:id_sensor, :valor, :fecha)
+                    """), {
+                        'id_sensor': sensor_row[0],
+                        'valor': valores["valor"],
+                        'fecha': fecha_hora
+                    })
+
+        # Guardar evento_control (ej. bomba)
+        actuadores = data.get("actuadores", {})
+        if "bomba" in actuadores:
+            act_row = conn.execute(sa.text("""
+                SELECT id_actuador FROM actuadores
+                WHERE nombre = 'BOMBA' AND id_sistema = :id_sistema
+            """), {'id_sistema': id_sistema}).fetchone()
+            if act_row:
+                conn.execute(sa.text("""
+                    INSERT INTO eventos_control (id_actuador, accion, fecha_hora, id_usuario)
+                    VALUES (:id_actuador, :accion, :fecha, NULL)
+                """), {
+                    'id_actuador': act_row[0],
+                    'accion': 'ON' if actuadores["bomba"] else 'OFF',
+                    'fecha': fecha_hora
+                })
+
+        conn.commit()
+
+def procesar_alarma(data: dict):
+    logger.info(f"[ALARMA] Nivel {data.get('nivel')} de dispositivo {data.get('device')} - {data.get('mensaje')}")
