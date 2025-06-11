@@ -15,10 +15,6 @@
 #define YELLOW  "\033[33m"
 #define RESET   "\033[0m"
 
-// --- Topicos ---
-const char* TOPIC_TELEMETRIA = "mediciones/dispositivo";
-const char* TOPIC_ALARMAS    = "alarmas/dispositivo";
-
 // --- Variables de configuración ---
 String topicInfo, topicLectura, topicAlarma;
 Preferences prefs;
@@ -39,19 +35,25 @@ void enviarJsonCompuesto();
 void enviarAlarma(int nivel);
 void imprimirEstadoDispositivo();
 
-// -----------------------------------
-// SETUP
-// -----------------------------------
-void setup() {
-    Serial.begin(115200);
+// --- Función global para obtener ID corto del dispositivo ---
+String idCorto() {
+    uint64_t chipid = ESP.getEfuseMac();            // Obtiene el valor único de 64 bits
+    char id[7];
+    snprintf(id, sizeof(id), "%02X%02X%02X",        // Solo los últimos 3 bytes 
+             (uint8_t)(chipid >> 16),
+             (uint8_t)(chipid >> 8),
+             (uint8_t)chipid);
+    return String(id);
+}
 
-    // --- Cargar configuración desde Preferences ---
+// ----------------------------------------------------
+// ----------------------------------------------------
+void cargarConfiguracion() {
     prefs.begin("config", true);
     ssid                 = prefs.getString("ssid", "");
     pass                 = prefs.getString("pass", "");
-    broker               = prefs.getString("broker", "");
+    broker               = prefs.getString("broker", "test.mosquitto.org");
     port                 = prefs.getUInt("port", 1883);
-    topic                = prefs.getString("topic", TOPIC_TELEMETRIA);
     deviceName           = prefs.getString("deviceName", "ESP32");
     intervaloPublicacion = prefs.getUInt("intervaloPublicacion", 60000);
     mqttUser             = prefs.getString("mqttUser", "");
@@ -59,8 +61,25 @@ void setup() {
     topicInfo            = prefs.getString("topicInfo", "info/default");
     topicLectura         = prefs.getString("topicLectura", "lecturas/default");
     topicAlarma          = prefs.getString("topicAlarma", "alarmas/default");
-    prefs.end();
 
+    umbralTempMax     = prefs.getFloat("umbralTempMax", 35.0);
+    umbralHumMin      = prefs.getFloat("umbralHumMin", 30.0);
+    umbralPresionMin  = prefs.getFloat("umbralPresionMin", 950.0);
+    umbralLuxMin      = prefs.getFloat("umbralLuxMin", 200.0);
+    umbralDistMax     = prefs.getFloat("umbralDistMax", 30.0);
+    umbralCaudalMin   = prefs.getFloat("umbralCaudalMin", 1.0);
+    umbralCO2Max      = prefs.getFloat("umbralCO2Max", 1000.0);
+    umbralVoltMin     = prefs.getFloat("umbralVoltMin", 3.0);
+    umbralCorrMin     = prefs.getFloat("umbralCorrMin", 0.05);
+    prefs.end();
+}
+
+// -----------------------------------
+// SETUP
+// -----------------------------------
+void setup() {
+    Serial.begin(115200);
+    void cargarConfiguracion();
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
 
     // --- crear instancias de managers --- 
@@ -68,7 +87,8 @@ void setup() {
         Serial, Serial2, Serial1,
         ssid.c_str(), pass.c_str(),
         broker.c_str(), port,
-        topic.c_str(), mqttUser.c_str(), mqttPass.c_str(),
+        topicInfo.c_str(), topicLectura.c_str(), topicAlarma.c_str(),
+        mqttUser.c_str(), mqttPass.c_str(),
         10000, 10000
     );
 
@@ -77,13 +97,13 @@ void setup() {
         PIN_DHT11,
         PIN_BH1750_SDA, PIN_BH1750_SCL,
         PIN_HCSR04_TRIG, PIN_HCSR04_ECHO,
-        PIN_CAUDALIMETRO, 450.0,
+        PIN_CAUDALIMETRO, FACTOR_CAUDAL,
         PIN_GAS
     );
 
     actuadorMgr = new ActuadorManager(
         PIN_BUZZER, PIN_RELE_BOMBA, PIN_LED_VERDE, PIN_LED_ROJO,
-        *sensorMgr, *commMgr, TOPIC_ALARMAS
+        *sensorMgr, *commMgr, topicAlarma.c_str()
     );
 
     // --- Inicializar managers ---
@@ -93,11 +113,9 @@ void setup() {
 
     // --- setear estado inicial de alarma ---
     nivelAlarmaAnterior = actuadorMgr->getNivelAlarma();
-
     enviarInformacionDispositivo();
     Serial.println("[INFO] Setup completo.");
 }
-
 
 // -----------------------------------
 // LOOP
@@ -134,6 +152,7 @@ void enviarJsonCompuesto() {
 
     if (error) {
         docFinal["device"] = deviceName;
+        docFinal["id"]     = idCorto();
         docFinal["timestamp"] = millis();
         docFinal["sensores"]["error"] = "No data";
     } else {
@@ -149,7 +168,7 @@ void enviarJsonCompuesto() {
 
     String payload;
     serializeJson(docFinal, payload);
-    commMgr->publicar(TOPIC_TELEMETRIA, payload.c_str());
+    commMgr->publicar(topicLectura.c_str(), payload.c_str());
 
     Serial.println("[INFO] Payload publicado:");
     Serial.println(payload);
@@ -161,8 +180,10 @@ void enviarJsonCompuesto() {
 void enviarAlarma(int nivel) {
     DynamicJsonDocument payload(256);
     payload["device"]  = deviceName;
+    payload["id"]      = idCorto();
     payload["tipo"]    = "alarma";
     payload["nivel"]   = nivel;
+    payload["origen"]  = actuadorMgr->getOrigenAlarma();
     switch (nivel) {
         case 3: payload["mensaje"] = "Alarma CRITICA"; break;
         case 2: payload["mensaje"] = "Alarma MEDIA";   break;
@@ -171,8 +192,83 @@ void enviarAlarma(int nivel) {
     }
     String out;
     serializeJson(payload, out);
-    commMgr->publicar(TOPIC_ALARMAS, out.c_str());
+    commMgr->publicar(topicAlarma.c_str(), out.c_str());
     Serial.println("[INFO] Alarma publicada:");
+    Serial.println(out);
+}
+
+// -----------------------------------
+
+void enviarInformacionDispositivo() {
+    DynamicJsonDocument doc(2048);
+    doc["device"] = deviceName;
+    doc["id"]     = idCorto();
+    doc["evento"] = "inicio";
+
+    JsonArray sensores = doc.createNestedArray("sensores");
+
+    JsonObject dht = sensores.createNestedObject();
+    dht["nombre"] = "DHT11";
+    dht["pin"] = PIN_DHT11;
+    dht["umbralTempMax"] = prefs.getFloat("umbralTempMax", 35.0);
+    dht["umbralHumMin"] = prefs.getFloat("umbralHumMin", 30.0);
+
+    JsonObject bmp = sensores.createNestedObject();
+    bmp["nombre"] = "BMP280";
+    bmp["pin"] = -1;
+    bmp["umbralPresionMin"] = prefs.getFloat("umbralPresionMin", 950.0);
+
+    JsonObject bh = sensores.createNestedObject();
+    bh["nombre"] = "BH1750";
+    bh["pin"] = PIN_BH1750_SDA;
+    bh["umbralLuxMin"] = prefs.getFloat("umbralLuxMin", 200.0);
+
+    JsonObject sr = sensores.createNestedObject();
+    sr["nombre"] = "HC-SR04";
+    sr["pinTrig"] = PIN_HCSR04_TRIG;
+    sr["pinEcho"] = PIN_HCSR04_ECHO;
+    sr["umbralDistMax"] = prefs.getFloat("umbralDistMax", 30.0);
+
+    JsonObject caudal = sensores.createNestedObject();
+    caudal["nombre"] = "Caudalimetro";
+    caudal["pin"] = PIN_CAUDALIMETRO;
+    caudal["umbralCaudalMin"] = prefs.getFloat("umbralCaudalMin", 1.0);
+
+    JsonObject co2 = sensores.createNestedObject();
+    co2["nombre"] = "CO2";
+    co2["pin"] = PIN_CO2;
+    co2["umbralCO2Max"] = prefs.getFloat("umbralCO2Max", 1000.0);
+
+    JsonObject energia = sensores.createNestedObject();
+    energia["nombre"] = "Energia";
+    energia["pin"] = PIN_ENERGIA;
+    energia["umbralVoltMin"] = prefs.getFloat("umbralVoltMin", 3.0);
+    energia["umbralCorrMin"] = prefs.getFloat("umbralCorrMin", 0.05);
+
+    JsonArray actuadores = doc.createNestedArray("actuadores");
+
+    JsonObject bomba = actuadores.createNestedObject();
+    bomba["nombre"] = "BOMBA";
+    bomba["pin"] = PIN_RELE_BOMBA;
+    bomba["estado"] = actuadorMgr->isBombaEncendida() ? "ON" : "OFF";
+
+    JsonObject buzzer = actuadores.createNestedObject();
+    buzzer["nombre"] = "BUZZER";
+    buzzer["pin"] = PIN_BUZZER;
+
+    JsonObject ledV = actuadores.createNestedObject();
+    ledV["nombre"] = "LED_VERDE";
+    ledV["pin"] = PIN_LED_VERDE;
+
+    JsonObject ledR = actuadores.createNestedObject();
+    ledR["nombre"] = "LED_ROJO";
+    ledR["pin"] = PIN_LED_ROJO;
+
+    String out;
+    serializeJson(doc, out);
+    commMgr->publicar(topicInfo.c_str(), out.c_str());
+
+    Serial.println("[INFO] Mensaje de inicio publicado:");
     Serial.println(out);
 }
 
@@ -211,33 +307,3 @@ void imprimirEstadoDispositivo() {
 
     Serial.println(YELLOW "============================================\n" RESET);
     }
-void enviarInformacionDispositivo() {
-    DynamicJsonDocument doc(1024);
-    doc["device"] = deviceName;
-    doc["evento"] = "inicio";
-
-    JsonArray sensores = doc.createNestedArray("sensores");
-    JsonObject s1 = sensores.createNestedObject();
-    s1["nombre"] = "DHT11";
-    s1["pin"] = PIN_DHT11;
-    s1["umbralTempMax"] = prefs.getFloat("umbralTempMax", 35.0);
-    s1["umbralHumMin"] = prefs.getFloat("umbralHumMin", 30.0);
-
-    JsonObject s2 = sensores.createNestedObject();
-    s2["nombre"] = "BMP280";
-    s2["pin"] = -1;
-    s2["umbralPresionMin"] = prefs.getFloat("umbralPresionMin", 950.0);
-
-    JsonArray actuadores = doc.createNestedArray("actuadores");
-    JsonObject a1 = actuadores.createNestedObject();
-    a1["nombre"] = "BOMBA";
-    a1["pin"] = PIN_RELE_BOMBA;
-    a1["estado"] = actuadorMgr->isBombaEncendida() ? "ON" : "OFF";
-
-    String out;
-    serializeJson(doc, out);
-    commMgr->publicar(topicInfo.c_str(), out.c_str());
-
-    Serial.println("[INFO] Mensaje de inicio publicado:");
-    Serial.println(out);
-}
