@@ -4,56 +4,65 @@
 #include <TinyGsmClient.h>
 #include <Preferences.h>
 
+//================================
+// Clase GSM
+//================================
 class GSM {
 public:
-  // Estados principales de la máquina
+  //-----------------------------------
+  // Estados posibles
+  //-----------------------------------
   enum class State : uint8_t {
-    Idle,                  // Nada iniciado
-    WaitingCredentials,    // Pidiendo APN/usuario/pass
-    Restarting,            // Reiniciando módem
-    NetworkRegistering,    // Registrando en red celular
-    GprsConnecting,        // Iniciando sesión GPRS
-    Connected,             // GPRS activo
-    Error                  // Cualquier fallo
+    Inactivo,               // Antes era Idle
+    EsperandoCredenciales,  // Pidiendo APN/usuario/pass
+    Reiniciando,            // Reiniciando módem
+    RegistrandoEnRed,       // Registrando en red celular
+    GprsConectando,         // Iniciando sesión GPRS
+    Conectado,              // GPRS activo
+    Error                   // Cualquier fallo
   };
 
-  // Constructor: 
-  //  - consoleSerial: interfaz para usuario (credenciales, logs) 
-  //  - modemSerial:   UART donde está conectado el módem AT
-  //  - baud:          velocidad de ese UART
+  // Constructor:
+  //  - consoleSerial: Serial para interacción/menús
+  //  - modemSerial:   UART donde está el módem AT
+  //  - baudRate:      velocidad para el UART del módem
   GSM(HardwareSerial& consoleSerial,
-               HardwareSerial& modemSerial,
-               uint32_t baud = 115200);
+      HardwareSerial& modemSerial,
+      uint32_t baudRate = 115200);
 
-  // Debe llamarse en setup()
-  void begin();
+  //-----------------------------------
+  // Métodos públicos
+  //-----------------------------------
+  void begin();             // Debe llamarse en setup()
+  void loop();              // Debe llamarse en loop()
+  State getState() const;   // Devuelve el estado actual
+  TinyGsm& getModem();      // Permite a otros acceder al módem (TinyGsm) para crear, por ejemplo, un TinyGsmClient
 
-  // Debe llamarse en loop()
-  void loop();
 
-  // Para que tu sketch sepa cuándo arrancar tu lógica de sensores
-  State getState() const;
-
+//-----------------------------------
+// Métodos privados de gestión interna
+//-----------------------------------
 private:
   // 1) Entrada / persistencia de credenciales
   void solicitarCredenciales();
-  bool leerCredentiales();
-  void guardarCredentiales();
-  bool cargarCredentiales();
+  bool leerCredenciales();
+  void guardarCredenciales();
+  bool cargarCredenciales();
 
   // 2) Pasos de conexión
-  void comenzartReinicio();
+  void comenzarReinicio();
   void verificarReinicio();
 
   void comenzarRegistroRed();
   void verificarRegistroRed();
 
-  void comenzartConexionGprs();
+  void comenzarConexionGprs();
   void verificarConexionGprs();
 
   // --- Datos internos ---
   HardwareSerial& _console;
   HardwareSerial& _modemSerial;
+  uint32_t        _baud;     
   Preferences     _prefs;
   TinyGsm         _modem;
 
@@ -63,3 +72,4 @@ private:
   unsigned long   _startMs;
   unsigned long   _timeoutMs;
 };
+

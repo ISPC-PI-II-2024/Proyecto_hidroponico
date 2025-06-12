@@ -26,7 +26,7 @@ class MQTTListener:
         # Creamos el cliente MQTT
         self.client = mqtt.Client()
         #if settings.mqtt_user and settings.mqtt_password:
-        #   self.client.username_pw_set(settings.mqtt_user, settings.mqtt_password)
+        self.client.username_pw_set(settings.mqtt_user, settings.mqtt_password)
         self.client.on_connect = self._on_connect
         self.client.on_message = self._on_message
 
@@ -50,9 +50,8 @@ class MQTTListener:
     def _on_connect(self, client, userdata, flags, rc):
         if rc == 0:
             logger.info("Conexión MQTT exitosa.")
-
-            # Nos suscribimos a cada topic, en caso de haber mas de uno
-            for topic in settings.mqtt_topics:
+                # Nos suscribimos a cada topic, en caso de haber mas de uno
+            for topic in settings.mqtt_topic_info + settings.mqtt_topic_data:
                 client.subscribe(topic)
                 logger.info(f"Suscrito al topic '{topic}'.")
         else:
@@ -71,7 +70,11 @@ class MQTTListener:
             logger.error(f"Error parseando JSON en topic '{msg.topic}': {e}")
             return
 
-        if any(msg.topic.startswith(t) for t in settings.mqtt_topics):
+        if msg.topic in settings.mqtt_topic_info:
+            procesar_info_inicial(data)
+        elif msg.topic in settings.mqtt_topic_data:
+            guardarDatos(GatewayMessage.parse_obj(data))
+        elif any(msg.topic.startswith(t) for t in settings.mqtt_topics):
             try:
                 # Validación del modelo de datos
                 mensaje = GatewayMessage.parse_obj(data)

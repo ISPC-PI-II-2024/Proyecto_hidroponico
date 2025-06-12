@@ -1,0 +1,17 @@
+{
+  "name": "Modulo_de_Energia",
+  "version": "1.0.0",
+  "description": "Módulo para medir voltaje, corriente y calcular potencia.",
+  "keywords": "energia, potencia, voltaje, corriente, i2c",
+  "authors": [
+    {
+      "name": "Juan Diego Gonzalez Antoniazzi",
+      "email": "juandi19972008@gmail.com"
+    }
+  ],
+  "dependencies": {
+    "Wire": "*" 
+  },
+  "frameworks": "arduino",
+  "platforms": "*"
+}

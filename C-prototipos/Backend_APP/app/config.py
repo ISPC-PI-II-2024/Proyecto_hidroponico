@@ -7,10 +7,12 @@ class Settings(BaseSettings):
     mqtt_broker_url: str           = Field(...,         env="MQTT_BROKER_URL")
     mqtt_user: Optional[str]       = Field(None,        env="MQTT_USER")
     mqtt_password: Optional[str]   = Field(None,        env="MQTT_PASSWORD")
-    mqtt_topics: List[str]         = Field(...,         env="MQTT_TOPICS")
+    mqtt_topic_info: List[str]     = Field(...,         env="MQTT_TOPIC_INFO")
+    mqtt_topic_data: List[str]     = Field(...,         env="MQTT_TOPIC_DATA")
+
 
     # MariaDB
-    mariadb_url: str                 = Field(...,         env="MARIADB_URL")
+    mariadb_url: str               = Field(...,         env="MARIADB_URL")
 
     # App HTTP
     api_host: str                  = Field("0.0.0.0",   env="API_HOST")
