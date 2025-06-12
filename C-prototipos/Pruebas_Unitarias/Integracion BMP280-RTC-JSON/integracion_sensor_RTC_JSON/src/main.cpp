@@ -5,6 +5,9 @@
 #include "DS3231.h"
 #include "JsonBuilder.h"
 #include "WiFiManager.h"
+#include "SensorDataMQTT.h"
+#include "WiFiCred.h"
+#include "WiFi.h"
 
 
 SensorBMP280 sensorBMP; // Objeto del sensor BMP280
@@ -14,6 +17,17 @@ WiFiManager wifi; //Objeto conexion wifi
 
 unsigned long Ultima_muestra = 0;
 const unsigned long Intervalo_muestra = 5000;
+
+const char* broker = "test.mosquitto.org";  // Reemplazar por IP local del broker
+const int mqttPort = 1883;
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_PASSWORD;
+IPAddress ip(192, 168, 0, 100);
+IPAddress gateway(192, 168, 0, 1);
+IPAddress subnet(255, 255, 255, 0);
+
+SensorDataMQTT sensorMQTT(ssid, password, broker, mqttPort, ip, gateway, subnet);
+
 
 void setup() {
   Serial.begin(9600);
@@ -27,15 +41,19 @@ void setup() {
     }
   
 
-  wifi.conectar();
+  sensorMQTT.conectarWiFi(); //conecto a WiFi, (modificar SSID y PASSWORD en WiFiCred.h)
+  sensorMQTT.conectarMQTT();  //conecto al broker MQTT
+
 
   // Inicializar el reloj RTC
   relojRTC.begin();
-  if (wifi.estaConectado()) {
+  if (WiFi.status()) {
     relojRTC.sincronizarConNTP(); // Sincronizar con servidor NTP
   } else {
     Serial.println("No hay conexión WiFi, no se sincronizará con NTP.");
-  } 
+  }
+
+
 }
 
 void loop() {
@@ -63,6 +81,7 @@ void loop() {
     String mensajeJSON = creadorJSON.construir();
     Serial.println("JSON generado:");
     Serial.println(mensajeJSON);
+    sensorMQTT.publicarLecturas(mensajeJSON);
   }
 
 }
