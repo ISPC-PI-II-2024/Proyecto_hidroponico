@@ -1,11 +1,12 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "mqtt_async.h"
+#include "comunicacion.h"
 
 #ifdef USE_GSM
   #include "gsm_async.h"
   extern bool gsmIsConnected(); 
-  #define APN       "tu_apn"
+  #define APN       "igprs.claro.com.ar"
   #define GPRS_USER ""
   #define GPRS_PASS ""
   #include <PubSubClient.h>
@@ -81,6 +82,8 @@ void mqttSetup(const char* server, uint16_t port) {
   mqttClient.onConnect(onMqttConnect);
   mqttClient.onDisconnect(onMqttDisconnect);
   mqttClient.setServer(server, port);
+  mqttClient.setCredentials(MQTT_USER, MQTT_PASSWORD);
+  mqttClient.setClientId(CLIENT_ID);
 #endif
 }
 
@@ -146,23 +149,30 @@ bool mqttSubscribe(const char* topic, uint8_t qos) {
 // ------------------------------------------------------------------
 //              NUEVA FUNCIÓN para publicar un String JSON
 // ------------------------------------------------------------------
-void publicarLecturas(const String& mensaje) {
+// *** CORRECCIÓN CRÍTICA AQUÍ: AGREGAR 'const char* topic' A LA FIRMA ***
+void publicarLecturas(const char* topic, const String& mensaje) {
 #ifdef USE_GSM
   if (!wifiIsConnected() && gsmIsConnected()) {
-    mqttClient.publish("sensores/datos", mensaje.c_str());
-    Serial.println(" MQTT por GSM:");
+    mqttClient.publish(topic, mensaje.c_str()); // Usar el 'topic' recibido
+    Serial.print(" MQTT por GSM (Topic: ");
+    Serial.print(topic);
+    Serial.println("):");
     Serial.println(mensaje);
   } else {
     Serial.println(" GSM no conectado.");
   }
 #else
   if (_connected) {
-    mqttClient.publish("sensores/datos", 1, false, mensaje.c_str());
-    Serial.println(" MQTT por Wi-Fi:");
+    mqttClient.publish(topic, 1, false, mensaje.c_str()); // Usar el 'topic' recibido
+    Serial.print(" MQTT por Wi-Fi (Topic: ");
+    Serial.print(topic);
+    Serial.println("):");
     Serial.println(mensaje);
   } else if (gsmIsConnected()) {
-    mqttClient.publish("sensores/datos", 1, false, mensaje.c_str());
-    Serial.println(" MQTT por GSM (fallback):");
+    mqttClient.publish(topic, 1, false, mensaje.c_str()); // Usar el 'topic' recibido
+    Serial.print(" MQTT por GSM (fallback) (Topic: ");
+    Serial.print(topic);
+    Serial.println("):");
     Serial.println(mensaje);
   } else {
     Serial.println(" MQTT no conectado (ni Wi-Fi ni GSM).");

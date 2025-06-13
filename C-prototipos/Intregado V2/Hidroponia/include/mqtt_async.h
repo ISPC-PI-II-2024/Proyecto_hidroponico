@@ -17,8 +17,7 @@ void mqttLoop();
 void mqttSetCallback(MqttMessageCallback callback);
 bool mqttSubscribe(const char* topic, uint8_t qos);
 bool mqttPublishJson(const char* topic, const JsonDocument& doc, uint8_t qos = 0, bool retain = false);
-void publicarLecturas(const String& mensaje);
-
+void publicarLecturas(const char* topic, const String& mensaje);
 // Acceso al cliente MQTT
 AsyncMqttClient& getMqttClient();
 

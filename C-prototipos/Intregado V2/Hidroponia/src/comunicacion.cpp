@@ -14,7 +14,7 @@ bool bleActivo = false;
 extern bool mqttConectado;
 
 // Instancia del cliente MQTT
-AsyncMqttClient mqttClient;
+// AsyncMqttClient mqttClient;
 
 // Conexión a WiFi
 void conectarWiFi() {
@@ -131,10 +131,84 @@ void enviarDatosMQTT() {
     //  Convertimos a string y enviamos con el nuevo método
     String mensaje;
     serializeJson(jsonDoc, mensaje);
-    publicarLecturas(mensaje);
+    publicarLecturas("sensores/datos", mensaje);
 }
 
+// Declaraciones de funciones auxiliares (agregar al inicio del archivo .h o antes de la función)
+JsonObject createSensorInfo(String pin, String type);
+JsonObject createI2CSensorInfo(String type, String addr);
+JsonObject createControlInfo(String pin, String type);
 
+void enviarInfoDispositivo() {
+    StaticJsonDocument<512> jsonDoc;
+    
+    jsonDoc["gatewayId"] = "esp32-" + obtenerID();
+    jsonDoc["timestamp"] = obtenerHora();
+    
+    JsonArray nodes = jsonDoc.createNestedArray("nodes");
+    JsonObject node = nodes.createNestedObject();
+    node["deviceId"] = "esp32-" + obtenerID();
+    node["timestamp"] = obtenerHora();
+    node["transmitter"] = true;
+    node["receiver"] = true;
+    
+    // Sensores con información de pines (optimizado)
+    JsonObject sensors = node.createNestedObject("sensors");
+    sensors["tempAgua"] = createSensorInfo("25", "DS18B20");
+    sensors["tempAire"] = createSensorInfo("33", "DHT11");
+    sensors["humedad"] = createSensorInfo("33", "DHT11");
+    sensors["nivel"] = createSensorInfo("32", "HC-SR04");
+    sensors["flujo"] = createSensorInfo("34", "YF-S201");
+    sensors["luz"] = createSensorInfo("4", "LDR");
+    sensors["gas"] = createSensorInfo("36", "MQ-2");
+    sensors["corriente"] = createI2CSensorInfo("INA219", "0x40");
+    sensors["voltaje"] = createI2CSensorInfo("INA219", "0x40");
+    sensors["potencia"] = createI2CSensorInfo("INA219", "0x40");
+    sensors["ph"] = createSensorInfo("35", "pH-analog");
+    sensors["hora"] = createI2CSensorInfo("DS1307", "");
+    
+    // Controles
+    JsonObject controls = node.createNestedObject("controls");
+    controls["bomba"] = createControlInfo("4", "dout");
+    controls["luces"] = createControlInfo("2", "dout");
+    controls["alarma"] = createControlInfo("15", "dout");
+    controls["modoAuto"] = createControlInfo("", "flag");
+    
+    // Módulos principales (compacto)
+    JsonObject modules = node.createNestedObject("modules");
+    modules["tft"] = "SPI-ILI9341";
+    modules["lora"] = "915MHz";
+    modules["pcf"] = "I2C-0x27";
+    modules["gsm"] = "UART-SIM800L";
+    
+    String mensaje;
+    serializeJson(jsonDoc, mensaje);
+    publicarLecturas("dispositivo/info", mensaje);
+    Serial.println(" Información del dispositivo enviada por MQTT: " + mensaje);
+}
+
+// Implementación de funciones auxiliares (agregar después de la función principal)
+JsonObject createSensorInfo(String pin, String type) {
+    StaticJsonDocument<64> temp;
+    temp["pin"] = "GPIO" + pin;
+    temp["type"] = type;
+    return temp.as<JsonObject>();
+}
+
+JsonObject createI2CSensorInfo(String type, String addr) {
+    StaticJsonDocument<64> temp;
+    temp["bus"] = "I2C";
+    temp["type"] = type;
+    if (addr != "") temp["addr"] = addr;
+    return temp.as<JsonObject>();
+}
+
+JsonObject createControlInfo(String pin, String type) {
+    StaticJsonDocument<64> temp;
+    if (pin != "") temp["pin"] = "GPIO" + pin;
+    temp["type"] = type;
+    return temp.as<JsonObject>();
+}
 // Enviar datos por LoRa (vacío por ahora)
 void enviarDatosLoRa() {}
 void recibirDatosLoRa() {}

@@ -90,12 +90,13 @@ void setup() {
   inicializarRTC();
   iniciarEEPROM();
   inicializarDashboard();
-  gsmSetup("wap.gprs.unifon.com.ar", "wap", "wap");
+  gsmSetup("igprs.claro.com.ar", "", "");
 
   // Primera lectura para no arrancar vacío
   leerDHT();
   leerLuz();
   leerGas();
+  enviarInfoDispositivo();
 
   Serial.println(" Sistema listo.");
 }

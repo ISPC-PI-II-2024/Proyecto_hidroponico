@@ -1,22 +1,15 @@
+# mensaje.py
 from datetime import datetime
-from typing import List, Dict, Optional, Union
-from pydantic import BaseModel, Field, validator
+from typing import List, Dict, Optional
+from pydantic import BaseModel, validator
 from dateutil.parser import parse as _parse_dt
 
 def _parse_datetime(v: str) -> datetime:
-    # acepta tanto "2025-5-19 6:24:12" como ISO8601
     try:
         return _parse_dt(v)
     except Exception:
         raise ValueError(f"timestamp inválido: {v}")
 
-#========================================
-# FORMATO DE LOS MENSAJES
-#========================================
-
-# ----------------------------
-# MODELO PARA LECTURAS
-# ----------------------------
 class ReadingNode(BaseModel):
     deviceId: str
     timestamp: datetime
@@ -34,11 +27,8 @@ class GatewayMessage(BaseModel):
 
     _parse_ts = validator("timestamp", pre=True, allow_reuse=True)(_parse_datetime)
 
-# ----------------------------
-# MODELO PARA CONFIGURACIÓN
-# ----------------------------
 class PinInfo(BaseModel):
-    pin: Optional[str] = None 
+    pin: Optional[str] = None
     type: Optional[str] = None
     source: Optional[str] = None
 
