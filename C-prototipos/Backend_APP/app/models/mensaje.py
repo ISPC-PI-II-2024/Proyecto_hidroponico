@@ -38,7 +38,7 @@ class GatewayMessage(BaseModel):
 # MODELO PARA CONFIGURACIÓN
 # ----------------------------
 class PinInfo(BaseModel):
-    pin: str
+    pin: Optional[str] = None 
     type: Optional[str] = None
     source: Optional[str] = None
 
@@ -48,7 +48,7 @@ class ConfigNode(BaseModel):
     transmitter: bool
     receiver: bool
     sensors: Dict[str, PinInfo]
-    controls: Dict[str, PinInfo]
+    controls: Dict[str, PinInfo] = {}
 
     _parse_ts = validator("timestamp", pre=True, allow_reuse=True)(_parse_datetime)
 

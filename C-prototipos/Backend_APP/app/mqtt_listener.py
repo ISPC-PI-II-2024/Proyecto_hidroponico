@@ -3,8 +3,8 @@ import threading
 import paho.mqtt.client as mqtt
 from app.config import settings
 from app.utils.logger import get_logger
-from app.services import mariadb_serv
-from app.models.mensaje import GatewayMessage
+from app.models.mensaje import GatewayMessage, DeviceInfo
+from app.services.mariadb_serv import procesar_info_inicial, guardar_datos
 
 logger = get_logger("mqtt_listener")
 
@@ -60,32 +60,35 @@ class MQTTListener:
     #------------------------------------------
     # ACCIONES AL RECIBIR MENSAJE
     #------------------------------------------
+
     def _on_message(self, client, userdata, msg):
-        # Decodifica y parsea el JSON
         try:
-            payload = msg.payload.decode("utf-8")
-            data = json.loads(payload)
-            logger.info(f"Mensaje recibido en '{msg.topic}': {data}")
+            data = json.loads(msg.payload.decode("utf-8"))
+            logger.info(f"Mensaje en '{msg.topic}': {data}")
         except Exception as e:
-            logger.error(f"Error parseando JSON en topic '{msg.topic}': {e}")
+            logger.error(f"JSON inválido en '{msg.topic}': {e}")
             return
 
+        # → Payload de INFO (configuración inicial)
         if msg.topic in settings.mqtt_topic_info:
-            procesar_info_inicial(data)
-        elif msg.topic in settings.mqtt_topic_data:
-            guardarDatos(GatewayMessage.parse_obj(data))
-        elif any(msg.topic.startswith(t) for t in settings.mqtt_topics):
             try:
-                # Validación del modelo de datos
-                mensaje = GatewayMessage.parse_obj(data)
-                logger.info(f"GatewayMessage parseado: {mensaje}")
-                # Guardado en ambos MariaDB
-                mariadb_serv.guardarDatos(mensaje)
-                logger.info("Guardado en MariaDB.")
-            except Exception as ex:
-                logger.error(f"Error guardando en servicios de BD: {ex}")
+                info = DeviceInfo.parse_obj(data)
+                procesar_info_inicial(info)
+                logger.info("INFO inicial guardada en MariaDB.")
+            except Exception as e:
+                logger.error(f"Error guardando INFO: {e}")
+
+        # → Payload de DATOS (lecturas y controles)
+        elif msg.topic in settings.mqtt_topic_data:
+            try:
+                lectura = GatewayMessage.parse_obj(data)
+                guardar_datos(lectura)
+                logger.info("Datos de sensores y controles guardados en MariaDB.")
+            except Exception as e:
+                logger.error(f"Error guardando DATOS: {e}")
+
         else:
-            logger.warning(f"Topic '{msg.topic}' no mapeado a ningún servicio.")
+            logger.warning(f"Tópico '{msg.topic}' no mapeado.")
 
 
 #------------------------------------------
