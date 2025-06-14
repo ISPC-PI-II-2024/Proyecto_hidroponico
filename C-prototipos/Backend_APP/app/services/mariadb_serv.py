@@ -3,7 +3,7 @@ from datetime import datetime
 import sqlalchemy as sa
 from sqlalchemy import (
     Table, MetaData, Column, Integer, String, Float, DateTime, ForeignKey,
-    select, insert, update
+    select, insert, update, null
 )
 from app.utils.logger import get_logger
 from app.config import settings
@@ -14,6 +14,7 @@ logger = get_logger("mariadb_service")
 _engine = sa.create_engine(settings.mariadb_url)
 _metadata = MetaData()
 
+# Definición de tablas según SQL proporcionado
 _sistemas = Table(
     "sistemas", _metadata,
     Column("id_sistema", Integer, primary_key=True, autoincrement=True),
@@ -54,28 +55,45 @@ _eventos = Table(
     Column("id_actuador", Integer, ForeignKey("actuadores.id_actuador")),
     Column("accion", String(3)),
     Column("fecha_hora", DateTime),
+    Column("id_usuario", Integer, nullable=True),  # El modelo SQL original admite este campo (puedes dejarlo null)
+)
+
+_umbrales = Table(
+    "umbrales", _metadata,
+    Column("id_umbrales", Integer, primary_key=True, autoincrement=True),
+    Column("tipo_sensor", String(50)),
+    Column("valor_min", Float),
+    Column("valor_max", Float),
+    Column("id_sistema", Integer, ForeignKey("sistemas.id_sistema")),
 )
 
 _metadata.create_all(_engine)
 
-# Mapeo de nombres para variables de sensores
+# Mapeo de nombres entre payload y base de datos
 SENSOR_NAME_MAP = {
     "temperaturaAgua": "tempAgua",
     "temperaturaAire": "tempAire",
-    "nivelAgua":      "nivel",
-    "flujoAgua":      "flujo",
+    "nivelAgua": "nivel",
+    "flujoAgua": "flujo",
 }
 
+# ---- FUNCIONES PRINCIPALES ----
 
 def procesar_info_inicial(info: DeviceInfo) -> None:
     with _engine.begin() as conn:
-        # Upsert en sistemas
+        # --- SISTEMA ---
         res = conn.execute(
             select(_sistemas.c.id_sistema)
             .where(_sistemas.c.nombre == info.gatewayId)
         ).first()
         if res:
             id_sis = res.id_sistema
+            # Actualizar fecha instalación si es necesario
+            conn.execute(
+                update(_sistemas)
+                .where(_sistemas.c.id_sistema == id_sis)
+                .values(fecha_instalacion=info.timestamp)
+            )
         else:
             result = conn.execute(
                 insert(_sistemas).values(
@@ -85,13 +103,13 @@ def procesar_info_inicial(info: DeviceInfo) -> None:
             )
             id_sis = result.inserted_primary_key[0]
 
-        # Upsert en sensores y actuadores (igual que antes)
+        # --- SENSORES y UMBRALES ---
         for node in info.nodes:
             for nombre, pininfo in node.sensors.items():
-                pin_val = int(pininfo.pin.replace("GPIO", "")) if pininfo.pin else None
+                pin_val = int(pininfo.pin.replace("GPIO", "")) if pininfo.pin and pininfo.pin.startswith("GPIO") else None
                 row = conn.execute(
                     select(_sensores.c.id_sensores)
-                    .where(( _sensores.c.nombre == nombre ) & (_sensores.c.id_sistema == id_sis))
+                    .where((_sensores.c.nombre == nombre) & (_sensores.c.id_sistema == id_sis))
                 ).first()
                 if row:
                     conn.execute(
@@ -99,18 +117,37 @@ def procesar_info_inicial(info: DeviceInfo) -> None:
                         .where(_sensores.c.id_sensores == row.id_sensores)
                         .values(tipo=pininfo.type, pin_entrada=pin_val)
                     )
+                    id_sensor = row.id_sensores
                 else:
-                    conn.execute(
+                    result = conn.execute(
                         insert(_sensores).values(
                             nombre=nombre, tipo=pininfo.type,
                             pin_entrada=pin_val, id_sistema=id_sis
                         )
                     )
+                    id_sensor = result.inserted_primary_key[0]
+                # UMBRAL por cada tipo de sensor (si no existe)
+                umbral_row = conn.execute(
+                    select(_umbrales.c.id_umbrales)
+                    .where((_umbrales.c.tipo_sensor == pininfo.type) & (_umbrales.c.id_sistema == id_sis))
+                ).first()
+                if not umbral_row:
+                    conn.execute(
+                        insert(_umbrales).values(
+                            tipo_sensor=pininfo.type,
+                            valor_min=None,  # O poner un valor por defecto si lo deseas
+                            valor_max=None,
+                            id_sistema=id_sis
+                        )
+                    )
+
+        # --- ACTUADORES ---
+        for node in info.nodes:
             for nombre, pininfo in node.controls.items():
-                pin_val = int(pininfo.pin.replace("GPIO", "")) if pininfo.pin else None
+                pin_val = int(pininfo.pin.replace("GPIO", "")) if pininfo.pin and pininfo.pin.startswith("GPIO") else None
                 row = conn.execute(
                     select(_actuadores.c.id_actuador)
-                    .where(( _actuadores.c.nombre == nombre ) & (_actuadores.c.id_sistema == id_sis))
+                    .where((_actuadores.c.nombre == nombre) & (_actuadores.c.id_sistema == id_sis))
                 ).first()
                 if row:
                     conn.execute(
@@ -122,11 +159,10 @@ def procesar_info_inicial(info: DeviceInfo) -> None:
                     conn.execute(
                         insert(_actuadores).values(
                             nombre=nombre, tipo=pininfo.type,
-                            pin_salida=pin_val, estado_actual=None,
+                            pin_salida=pin_val, estado_actual='OFF',
                             id_sistema=id_sis
                         )
                     )
-
 
 def guardar_datos(msg: GatewayMessage) -> None:
     with _engine.begin() as conn:
@@ -136,14 +172,14 @@ def guardar_datos(msg: GatewayMessage) -> None:
         ).scalar_one()
 
         for node in msg.nodes:
-            # -- Procesar valores de sensores --
+            # --- SENSORES ---
             for nombre, valor in node.sensors.items():
                 if nombre == "hora":
                     continue
                 mapped = SENSOR_NAME_MAP.get(nombre, nombre)
                 row = conn.execute(
                     select(_sensores.c.id_sensores)
-                    .where(( _sensores.c.nombre == mapped ) & (_sensores.c.id_sistema == id_sis))
+                    .where((_sensores.c.nombre == mapped) & (_sensores.c.id_sistema == id_sis))
                 ).first()
                 if not row:
                     # Crear sensor dinámicamente
@@ -165,27 +201,30 @@ def guardar_datos(msg: GatewayMessage) -> None:
                     )
                 )
 
-            # -- Procesar controles/actuadores --
+            # --- CONTROLES / ACTUADORES ---
             for nombre, estado in node.controls.items():
                 if nombre == "modoAutomatico":
                     continue
                 row_act = conn.execute(
                     select(_actuadores.c.id_actuador)
-                    .where(( _actuadores.c.nombre == nombre ) & (_actuadores.c.id_sistema == id_sis))
+                    .where((_actuadores.c.nombre == nombre) & (_actuadores.c.id_sistema == id_sis))
                 ).first()
                 if not row_act:
                     logger.warning(f"Actuador '{nombre}' no registrado, omitiendo control")
                     continue
                 id_act = row_act.id_actuador
+                # Actualizar estado actual del actuador
                 conn.execute(
                     update(_actuadores)
                     .where(_actuadores.c.id_actuador == id_act)
                     .values(estado_actual='ON' if estado else 'OFF')
                 )
+                # Insertar evento de control
                 conn.execute(
                     insert(_eventos).values(
                         id_actuador=id_act,
                         accion='ON' if estado else 'OFF',
-                        fecha_hora=node.timestamp
+                        fecha_hora=node.timestamp,
+                        id_usuario=None  # Sin gestión de usuarios por ahora
                     )
                 )

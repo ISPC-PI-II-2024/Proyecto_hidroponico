@@ -10,25 +10,8 @@ def _parse_datetime(v: str) -> datetime:
     except Exception:
         raise ValueError(f"timestamp inválido: {v}")
 
-class ReadingNode(BaseModel):
-    deviceId: str
-    timestamp: datetime
-    transmitter: bool
-    receiver: bool
-    sensors: Dict[str, float]
-    controls: Dict[str, bool]
-
-    _parse_ts = validator("timestamp", pre=True, allow_reuse=True)(_parse_datetime)
-
-class GatewayMessage(BaseModel):
-    gatewayId: str
-    timestamp: datetime
-    nodes: List[ReadingNode]
-
-    _parse_ts = validator("timestamp", pre=True, allow_reuse=True)(_parse_datetime)
-
 class PinInfo(BaseModel):
-    pin: Optional[str] = None
+    pin: Optional[str] = None   # Ejemplo: "GPIO25", para base debe ser int (25) o None
     type: Optional[str] = None
     source: Optional[str] = None
 
@@ -46,5 +29,22 @@ class DeviceInfo(BaseModel):
     gatewayId: str
     timestamp: datetime
     nodes: List[ConfigNode]
+
+    _parse_ts = validator("timestamp", pre=True, allow_reuse=True)(_parse_datetime)
+
+class ReadingNode(BaseModel):
+    deviceId: str
+    timestamp: datetime
+    transmitter: bool
+    receiver: bool
+    sensors: Dict[str, float]
+    controls: Dict[str, bool]
+
+    _parse_ts = validator("timestamp", pre=True, allow_reuse=True)(_parse_datetime)
+
+class GatewayMessage(BaseModel):
+    gatewayId: str
+    timestamp: datetime
+    nodes: List[ReadingNode]
 
     _parse_ts = validator("timestamp", pre=True, allow_reuse=True)(_parse_datetime)

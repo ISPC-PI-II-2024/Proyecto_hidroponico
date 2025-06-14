@@ -41,11 +41,12 @@ class MQTTListener:
             logger.error(f"JSON inválido en '{msg.topic}': {e}")
             return
 
+        # Procesamiento según topic recibido
         if msg.topic in settings.mqtt_topic_info:
             try:
                 info = DeviceInfo.parse_obj(data)
                 procesar_info_inicial(info)
-                logger.info("INFO inicial guardada en MariaDB.")
+                logger.info("INFO inicial guardada en MariaDB (sistemas, sensores, actuadores, umbrales).")
             except Exception as e:
                 logger.error(f"Error guardando INFO: {e}")
 
@@ -53,7 +54,7 @@ class MQTTListener:
             try:
                 lectura = GatewayMessage.parse_obj(data)
                 guardar_datos(lectura)
-                logger.info("Datos de sensores y controles guardados en MariaDB.")
+                logger.info("Datos de sensores y controles guardados en MariaDB (lecturas, eventos_control).")
             except Exception as e:
                 logger.error(f"Error guardando DATOS: {e}")
         else:
