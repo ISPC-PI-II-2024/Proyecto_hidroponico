@@ -41,7 +41,6 @@ class MQTTListener:
             logger.error(f"JSON inválido en '{msg.topic}': {e}")
             return
 
-        # Procesamiento según topic recibido
         if msg.topic in settings.mqtt_topic_info:
             try:
                 info = DeviceInfo.parse_obj(data)
@@ -52,6 +51,15 @@ class MQTTListener:
 
         elif msg.topic in settings.mqtt_topic_data:
             try:
+                # --- Preprocesado para compatibilidad payload legacy ---
+                if "nodes" in data:
+                    for node in data["nodes"]:
+                        # Corrige 'reciber' a 'receiver' si hace falta
+                        if "reciber" in node and "receiver" not in node:
+                            node["receiver"] = node.pop("reciber")
+                        # Quita 'hora' del dict de sensores si está
+                        if "sensors" in node and "hora" in node["sensors"]:
+                            node["sensors"].pop("hora")
                 lectura = GatewayMessage.parse_obj(data)
                 guardar_datos(lectura)
                 logger.info("Datos de sensores y controles guardados en MariaDB (lecturas, eventos_control).")

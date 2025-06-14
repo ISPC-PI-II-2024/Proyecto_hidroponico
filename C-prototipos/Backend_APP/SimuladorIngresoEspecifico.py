@@ -25,6 +25,11 @@ payload = {
                 "nivel": { "pin": "GPIO32", "type": "HC-SR" },
                 "flujo": { "pin": "GPIO34", "type": "YF-S2" },
                 "luz": { "pin": None }
+            },
+             "controls": {
+                "bomba": { "pin": "GPIO17", "type": "RELAY" },
+                "luces": { "pin": "GPIO18", "type": "RELAY" },
+                "alarma": { "pin": "GPIO19", "type": "BUZZER" }
             }
         }
     ]
