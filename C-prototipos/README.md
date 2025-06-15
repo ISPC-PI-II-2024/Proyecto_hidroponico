@@ -135,7 +135,7 @@ git clone https://github.com/ISPC-PI-II-2024/Proyecto_hidroponico.git
 cd Proyecto_hidroponico
 
 ### 📄 3 - Arquitectura
-```markdown
+
 # 🧭 3 - Arquitectura del sistema
 
 ## 🌐 Diagrama general
@@ -181,7 +181,9 @@ Grafana permite construir dashboards con paneles que muestran en tiempo real o h
 - MariaDB integrada como data source.
 
 ## 🌐 Acceso
-[http://telecomunicaciones.ddns.net:8080/grafana/](http://telecomunicaciones.ddns.net:8080/grafana/)
+http://telecomunicaciones.ddns.net:8080/grafana/
+
+http://telecomunicaciones.ddns.net:8080/grafana/
 ---
 
 # 🗃️ 6 - Base de datos MariaDB
