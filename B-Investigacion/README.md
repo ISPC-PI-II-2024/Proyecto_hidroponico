@@ -1,5 +1,5 @@
-# Proyecto_hidroponico<p align="center">
-  <img src="E-Assets/logo.png" width="200" alt="ISPC Hydroponics logo"/>
+<p align="center">
+  <img src="/E-Assets/logo.png" width="200" alt="ISPC Hydroponics logo"/>
 </p>
 
 <h1 align="center">ISPC Hydroponics</h1>
