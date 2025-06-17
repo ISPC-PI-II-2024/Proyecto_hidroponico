@@ -35,8 +35,8 @@ Cada panel está basado en una consulta SQL hacia la tabla `lecturas`, filtrando
 
 ## 🧠 Cómo editar y entender un panel
 
-1. Accedé a: [Dashboard Hidroponia](http://telecomunicaciones.ddns.net:8080/grafana/d/4946fc4f-6bef-4771-b360-4d32d8c6951a/hidroponia?orgId=1)
-2. En cada panel, hacé clic en los tres puntos (︙) > **Edit**.
+1. Accedé a: [Dashboard Hidroponia](http://telecomunicaciones.ddns.net:8080/grafana/public-dashboards/855dc3a2826f476db1800452849f3251)
+2. En cada panel, hacé clic en los tres puntos (︙) > **Edit** --> **OPCION DISPONIBLE SOLO PARA ADMINISTRADORES DEL SISTEMA**
 3. Verás:
    - La **consulta SQL** al backend MariaDB
    - Tipo de visualización (línea, gauge, tabla)
