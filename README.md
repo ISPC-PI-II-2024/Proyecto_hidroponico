@@ -142,7 +142,7 @@ El proyecto fue elegido por su aplicabilidad práctica, potencial de escalabilid
 
 # 📘 1 - Introducción
 
-El presente proyecto tiene como finalidad diseñar e implementar un sistema IoT para el monitoreo y control de un cultivo hidropónico. El enfoque está basado en el Aprendizaje Basado en Proyectos (ABP) integrando conocimientos adquiridos en distintas materias técnicas de segundo año
+El presente proyecto tiene como finalidad diseñar e implementar un sistema IoT para el monitoreo y control de un cultivo hidropónico. El enfoque está basado en el Aprendizaje Basado en Proyectos (ABP) integrando conocimientos adquiridos en las distintas materias del módulo FULLSTACK, correspondiente al segundo año de la tecnicatura en telecomunicaciones.
 
 ### 🧠 Justificación
 
@@ -193,22 +193,22 @@ cd Proyecto_hidroponico
 Utilizando como cerebro del sistema un ESP32 que gestiona los sensores, actuadores y las conexiones, se disponen de un sistema extenso y complejo que nos permite leer variedad de valores del entorno, y de hasta dentro del sistema.
 
 El mismo dispone de conexion via Wifi, enviando lecturas, estado del sistemas y alarmas mediente MQTT. Toda la informacion es envia via 2 topicos
-- **dispositivo/info:** este se utiliza solo al inicio/reincio del dispositivo. Estaen marcado solo dentro del setup. Y envia hacia la base de datos, via broker + API el estado actual del dispositivo, indicando sensores, actuadores, las clases y los pines a los que conecta cada uno. Es sobre esta base de informacion, que luego se registrara cada lectura
+- **dispositivo/info:** este se utiliza solo al inicio/reincio del dispositivo. Esta enmarcado solo dentro del setup, envia hacia la base de datos, via broker + API el estado actual del dispositivo, indicando sensores, actuadores, las clases y los pines a los que conecta cada uno. Es sobre esta base de informacion, que luego se registrara cada lectura
 - **dispositivo/datos:** Este corresponde a un payload donde se envia la lectura de cada sensor, y el estado de cada actuador. El envio esta programado cada 5s. Por lo que la visualizacion es practicamente a tiempo real.
 
 **Pruebas Unitarias**
 
 - [Directorio de Pruebas unitariass](.//C-prototipos/Pruebas_Unitarias/)
 
-A lo largo del proyecto se realizadon pruebas de cada elemento que compone el sistema, en un formato de clases, instanciado y modulado Que facilito su integracion
+A lo largo del proyecto se realizadon pruebas de cada elemento que compone el sistema, en un formato de clases, instanciado y modulado, lo cual facilitó su integracion.
 
 **Integraciones**
 - [Integracion:Version-1](.//C-prototipos/Integrado%20V1/)
 - [Integracion:Version-2](.//C-prototipos/Intregado%20V2/)
 
-Dos formatos de integracion fueron realizados. Sindo la version 2 la que se encuentra efectivamente desplega, y enviando datos el resto del sistema.
+Dos formatos de integracion fueron realizados. Sindo la version 2 la que se encuentra efectivamente desplegada, y enviando datos el resto del sistema.
 
-Dentro del directorio [Integracion:Version-2] puede encontrarse informacion detallada del sistema, flujo de trabajo, componenetes, configuracion de cada elemento y manual de usuario para el menu y la interaccion para con el sistema
+Dentro del directorio [Integracion:Version-2] puede encontrarse informacion detallada del sistema, flujo de trabajo, componentes, configuracion de cada elemento y manual de usuario para el menu y la interaccion para con el sistema
 
 **Flujo de Trabajo**
 ```mermaid
@@ -261,13 +261,16 @@ Grafana permite construir dashboards con paneles que muestran en tiempo real o h
 **🔄 Fuentes de datos**
 - MariaDB integrada como data source.
 
-**🌐 Acceso Público**
+**🌐 Acceso Público:**
 [CLICK AQUI](http://telecomunicaciones.ddns.net:8080/grafana/public-dashboards/855dc3a2826f476db1800452849f3251)
 
 
 <p align="center">
   <img src="/E-Assets/grafana.png" width="700" alt="Grafana"/>
 </p>
+
+---
+---
 
 ## 📊  5B - Automatización con Node-RED
 
@@ -279,11 +282,15 @@ Node-RED permite crear flujos lógicos para procesar, transformar y reenviar dat
 - Filtrado y reenvío de datos a MariaDB.
 - Reglas de control automático (p. ej., encendido de bombas).
 
-**🌐 Flujos visuales**
+**🌐 Flujos visuales:** [CLICK AQUI:](http://telecomunicaciones.ddns.net:8080/nodered/ui/#!/0?socketid=3i5QtwPpwfv6I9fGAAAq)
 
 <p align="center">
-  <img src="/E-Assets/.png" width="500" alt="Node-RED"/>
+  <img src="/E-Assets/nr-hidrop01.png" width="540" alt="Node-RED"/>
+  <img src="/E-Assets/nr-hidrop00.png" width="400" alt="Node-RED"/>
 </p>
+
+---
+---
 
 **🔐 Seguridad**
 
@@ -326,7 +333,7 @@ MariaDB almacena los datos recolectados desde los sensores y enviados por Node-R
 - Usuario: `telecomunicaciones`
 - Contraseña: `cohorte*2024`
 
-Acceso a través de gestores como MariaDB o MySQL Workbench, o mediante cualquier SGBD
+Acceso a través de gestores como HeidiDB o MySQL Workbench, o mediante cualquier SGBD.
 
 ---
 
@@ -368,9 +375,9 @@ Se desarrolló una API tipo FastAPI, con cliente MQTT,
 | GET | `/message` | Obtener una lectura específica, segun el formato del mensaje |
 
 ### 🔐 Seguridad
-Actualmente sin autenticación, se podrian añadir JWT o middleware de acceso en producción mas complejo o con alguna medida que sume a la seguridad..
-Igualmente la API no tiene definido funciones para realizar consultas a la base de datos, unicamente para registrar cuando se cumple el formato correcto, en el topic especifico
-Ademas, se encuentra resguardada, gracias a que el broker define para su conexion un usuario y contraseña, y un usuario de conexion creado en la DB que carece de perfil de administrador
+Actualmente sin autenticación, se podrian añadir JWT o middleware de acceso en producción mas complejo o con alguna medida que sume a la seguridad.
+Igualmente la API no tiene definido funciones para realizar consultas a la base de datos, unicamente para registrar cuando se cumple el formato correcto, en el topic especifico.
+Ademas, se encuentra resguardada, gracias a que el broker define para su conexion un usuario y contraseña, y un usuario de conexion creado en la DB que carece de perfil de administrador.
 
 ### 🧰 Tecnologías
 - Cliente MQTT
