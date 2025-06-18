@@ -190,8 +190,62 @@ cd Proyecto_hidroponico
 
 ## 4 - Dispositivo Fisico (Microcontrolador + Sistemas de sensores/actuadores)
 
+Utilizando como cerebro del sistema un ESP32 que gestiona los sensores, actuadores y las conexiones, se disponen de un sistema extenso y complejo que nos permite leer variedad de valores del entorno, y de hasta dentro del sistema.
 
+El mismo dispone de conexion via Wifi, enviando lecturas, estado del sistemas y alarmas mediente MQTT. Toda la informacion es envia via 2 topicos
+- dispositivo/info: este se utiliza solo al inicio/reincio del dispositivo. Estaen marcado solo dentro del setup. Y envia hacia la base de datos, via broker + API el estado actual del dispositivo, indicando sensores, actuadores, las clases y los pines a los que conecta cada uno. Es sobre esta base de informacion, que luego se registrara cada lectura
+- dispositivo/datos: Este corresponde a un payload donde se envia la lectura de cada sensor, y el estado de cada actuador. El envio esta programado cada 5s. Por lo que la visualizacion es practicamente a tiempo real.
 
+**Pruebas Unitarias**
+
+- [Directorio de Pruebas unitariass](.//C-prototipos/Pruebas_Unitarias/)
+
+A lo largo del proyecto se realizadon pruebas de cada elemento que compone el sistema, en un formato de clases, instanciado y modulado Que facilito su integracion
+
+**Integraciones**
+- [Integracion:Version-1](.//C-prototipos/Integrado%20V1/)
+- [Integracion:Version-2](.//C-prototipos/Intregado%20V2/)
+
+Dos formatos de integracion fueron realizados. Sindo la version 2 la que se encuentra efectivamente desplega, y enviando datos el resto del sistema.
+
+Dentro del directorio [Integracion:Version-2] puede encontrarse informacion detallada del sistema, flujo de trabajo, componenetes, configuracion de cada elemento y manual de usuario para el menu y la interaccion para con el sistema
+
+**Flujo de Trabajo**
+
+```mermaid
+flowchart TD
+    %% Inicialización
+    A[Inicio del Sistema] --> B[Inicializar Pantalla]
+    B --> C[Inicializar WiFi]
+    C --> D{WiFi OK?}
+    D -- No --> C
+    D -- Sí --> E[Conectar a MQTT Broker]
+    E --> F{MQTT OK?}
+    F -- No --> G[Back-off + Reintento MQTT]
+    G --> E
+    F -- Sí --> H[Inicializar Sensores]
+    H --> I[Inicializar RTC]
+    I --> J[Inicializar EEPROM]
+    J --> K[Inicializar Módem GSM]
+    K --> L[Entrar en Bucle Principal]
+    
+    %% Bucle Principal
+    subgraph Bucle_Principal
+      L --> M[Esperar intervaloLectura]
+      M --> N[Leer Sensores]
+      N --> O{mqttConectado?}
+      O -- Sí --> P[Enviar datos vía MQTT]
+      O -- No --> Q[Enviar datos vía GSM]
+      P --> R[Actualizar Dashboard]
+      Q --> R
+      R --> S[Mostrar Menú/UI]
+      S --> T{Interacción en Menú?}
+      T -- Sí --> U[Procesar Comando Usuario]
+      T -- No --> V[Continuar Bucle]
+      U --> R
+      V --> M
+    end
+```
 ---
 
 ## 📊 5A - Visualización con Grafana
