@@ -12,16 +12,16 @@
 
 ---
 
-### 📌 DESCRIPCION
+### 📌 DESCRIPCIÓN
 
-**ISPC Hydroponics** Este proyecto  propone el desarrollo de un sistema inteligente basado en IoT para monitorear y  automatizar variables clave en un cultivo hidropónico. Se implementa durante el primer cuatrimestre de 2024, empleando sensores, microcontroladores, protocolos  de comunicación y plataformas de visualización de datos. 
+**ISPC Hydroponics**: Este proyecto  propone el desarrollo de un sistema inteligente basado en IoT para monitorear y  automatizar variables clave en un cultivo hidropónico. Se implementa durante el primer cuatrimestre de 2024, empleando sensores, microcontroladores, protocolos  de comunicación y plataformas de visualización de datos. 
   
 Es un proyecto tecnológico. Combina el diseño y programación de sistemas embebidos,  modelado de bases de datos y visualización con una investigación sobre las necesidades del cultivo hidropónico y su automatización. 
 
 
-### 📌 PROBLEMATICA
+### 📌 PROBLEMÁTICA
 
-La agricultura urbana enfrenta limitaciones en el acceso a tierra fértil y agua. Los cultivos hidropónicos requieren un control preciso de variables como pH, TDS, luz y temperatura. Se detecta la necesidad de automatizar y visualizar estos parámetros para asegurar la eficiencia del cultivo en contextos urbanos, educativos o de baja escala
+La agricultura urbana enfrenta limitaciones en el acceso a tierra fértil y agua. Los cultivos hidropónicos requieren un control preciso de variables como pH, TDS, luz y temperatura. Se detecta la necesidad de automatizar y visualizar estos parámetros para asegurar la eficiencia del cultivo en contextos urbanos, educativos o de baja escala.
 
 ---
 
@@ -61,23 +61,23 @@ Se busca fortalecer la capacidad de integración de tecnologías en soluciones r
 
 ---
 
-### FUNDAMENTACION
+### FUNDAMENTACIÓN
 
-El proyecto fue elegido por su aplicabilidad práctica, potencial de escalabilidad y su conexión directa con la sustentabilidad alimentaria. Permite aplicar conocimientos técnicos en una solución concreta y útil, que responde tanto al perfi l profesional como a una problemática global: la producción de alimentos en espacios reducidos con uso efi ciente de recursos. Su impacto puede ampliarse a instituciones educativas, espacios comunitarios o pequeños productores. 
+El proyecto fue elegido por su aplicabilidad práctica, potencial de escalabilidad y su conexión directa con la sustentabilidad alimentaria. Permite aplicar conocimientos técnicos en una solución concreta y útil, que responde tanto al perfil profesional como a una problemática global: La producción de alimentos en espacios reducidos con uso eficiente de recursos. Su impacto puede ampliarse a instituciones educativas, espacios comunitarios o pequeños productores. 
 
 ---
 
-### STACK TECNOLOGICO
+### STACK TECNOLÓGICO
 
-- ESP32 + sensores físicos
+- ESP32 + Sensores físicos
 - Node-RED
-- MQTT (broker privado)
+- MQTT (Broker privado)
 - MariaDB | Heidi-Workbench 
 - Grafana
-- Portainer (orquestación Docker)
+- Portainer (Orquestación Docker)
 - GitHub (Scrum / Kanban)
-- FAST API - python
-- VsCode + Platformio
+- FAST API - Python
+- VsCode + PlatformIO
 
 ---
 
@@ -155,7 +155,7 @@ El presente proyecto tiene como finalidad diseñar e implementar un sistema IoT 
 - Recolectar datos ambientales (humedad, pH, temperatura).
 - Recolectar datos internos del sistema.
 - Visualizar y analizar datos con dashboards.
-- Aplicar control remoto mediante reglas automáticas, o interaccion remota y manual
+- Aplicar control remoto mediante reglas automáticas, o interaccion remota y manual.
 - Documentar el desarrollo siguiendo buenas prácticas de software.
 
 ---
@@ -191,27 +191,27 @@ cd Proyecto_hidroponico
 
 ---
 
-### 4 - Dispositivo Fisico (Microcontrolador + Sistemas de sensores/actuadores)
+### 4 - Dispositivo Físico (Microcontrolador + Sistemas de sensores/actuadores)
 
 Utilizando como cerebro del sistema un ESP32 que gestiona los sensores, actuadores y las conexiones, se disponen de un sistema extenso y complejo que nos permite leer variedad de valores del entorno, y de hasta dentro del sistema.
 
-El mismo dispone de conexion via Wifi, enviando lecturas, estado del sistemas y alarmas mediente MQTT. Toda la informacion es envia via 2 topicos
-- **dispositivo/info:** este se utiliza solo al inicio/reincio del dispositivo. Esta enmarcado solo dentro del setup, envia hacia la base de datos, via broker + API el estado actual del dispositivo, indicando sensores, actuadores, las clases y los pines a los que conecta cada uno. Es sobre esta base de informacion, que luego se registrara cada lectura
-- **dispositivo/datos:** Este corresponde a un payload donde se envia la lectura de cada sensor, y el estado de cada actuador. El envio esta programado cada 5s. Por lo que la visualizacion es practicamente a tiempo real.
+El mismo dispone de conexion via Wi-Fi, enviando lecturas, estado del sistemas y alarmas mediente MQTT. Toda la informacion es enviada via 2 tópicos:
+- **dispositivo/info:** Este se utiliza solo al inicio/reincio del dispositivo. Está enmarcado solo dentro del setup, envía hacia la base de datos, vía broker + API el estado actual del dispositivo, indicando sensores, actuadores, las clases y los pines a los que conecta cada uno. Es sobre esta base de información, que luego se registrará cada lectura.
+- **dispositivo/datos:** Este corresponde a un payload donde se envía la lectura de cada sensor, y el estado de cada actuador. El envío está programado cada 5s. Por lo que la visualización es prácticamente a tiempo real.
 
 **Pruebas Unitarias**
 
-- [Directorio de Pruebas unitariass](.//C-prototipos/Pruebas_Unitarias/)
+- [Directorio de Pruebas unitarias](.//C-prototipos/Pruebas_Unitarias/)
 
-A lo largo del proyecto se realizadon pruebas de cada elemento que compone el sistema, en un formato de clases, instanciado y modulado, lo cual facilitó su integracion.
+A lo largo del proyecto se realizaron pruebas de cada elemento que compone el sistema, en un formato de clases, instanciado y modulado, lo cual facilitó su integración.
 
 **Integraciones**
-- [Integracion:Version-1](.//C-prototipos/Integrado%20V1/)
-- [Integracion:Version-2](.//C-prototipos/Intregado%20V2/)
+- [Integración: Version-1](.//C-prototipos/Integrado%20V1/)
+- [Integración: Version-2](.//C-prototipos/Intregado%20V2/)
 
-Dos formatos de integracion fueron realizados. Sindo la version 2 la que se encuentra efectivamente desplegada, y enviando datos el resto del sistema.
+Dos formatos de integración fueron realizados. Siedo la versión 2 la que se encuentra efectivamente desplegada, y enviando datos al resto del sistema.
 
-Dentro del directorio [Integracion:Version-2] puede encontrarse informacion detallada del sistema, flujo de trabajo, componentes, configuracion de cada elemento y manual de usuario para el menu y la interaccion para con el sistema
+Dentro del directorio [Integración: Version-2] puede encontrarse información detallada del sistema, flujo de trabajo, componentes, configuración de cada elemento y manual de usuario para el menú y la interacción para con el sistema.
 
 **Flujo de Trabajo**
 ```mermaid
@@ -258,8 +258,8 @@ Grafana permite construir dashboards con paneles que muestran en tiempo real o h
 - Temperatura del ambiente.
 - Humedad del sustrato.
 - Niveles de pH.
-- Estado de los actuadores
-- Niveles generales de lectura de cada sensor
+- Estado de los actuadores.
+- Niveles generales de lectura de cada sensor.
 
 **🔄 Fuentes de datos**
 - MariaDB integrada como data source.
@@ -358,7 +358,7 @@ El broker MQTT se usa para recibir datos desde sensores IoT.
 
 ### 🧪 Pruebas
 Podés usar MQTT Explorer para conectar y verificar los tópicos activos.
-Se desarrollaron 3 aplicaciones simple que emulan datos, y envian informacion a los mismos topicos a fin de afinar el parseo, registro y visualizacion de la informacion.
+Se desarrollaron 3 aplicaciones simple que emulan datos, y envían información a los mismos tópicos a fin de afinar el parseo, registro y visualización de la información.
 - [SimuladorCreacionDIspositivos.py](.//C-prototipos/Backend_APP/SimuladorCreacionDIspositivos.py)
 - [SimuladorIngresoEspecifico.py](.//C-prototipos/Backend_APP/SimuladorIngresoEspecifico.py)
 - [SimuladorLecturas.py](.//C-prototipos/Backend_APP/SimuladorLecturas.py)
@@ -367,7 +367,7 @@ Se desarrollaron 3 aplicaciones simple que emulan datos, y envian informacion a 
 
 ## 🌐 8 - API REST
 
-Se desarrolló una API tipo FastAPI, con cliente MQTT, 
+Se desarrolló una API tipo FastAPI, con cliente MQTT. 
 
 ### 📂 Ubicación en el repositorio
 `/Backend_APP`
@@ -379,22 +379,22 @@ Se desarrolló una API tipo FastAPI, con cliente MQTT,
 | GET | `/message` | Obtener una lectura específica, segun el formato del mensaje |
 
 ### 🔐 Seguridad
-Actualmente sin autenticación, se podrian añadir JWT o middleware de acceso en producción mas complejo o con alguna medida que sume a la seguridad.
-Igualmente la API no tiene definido funciones para realizar consultas a la base de datos, unicamente para registrar cuando se cumple el formato correcto, en el topic especifico.
-Ademas, se encuentra resguardada, gracias a que el broker define para su conexion un usuario y contraseña, y un usuario de conexion creado en la DB que carece de perfil de administrador.
+Actualmente sin autenticación, se podrían añadir JWT o middleware de acceso en producción mas complejo o con alguna medida que sume a la seguridad.
+Igualmente la API no tiene definido funciones para realizar consultas a la base de datos, únicamente para registrar cuando se cumple el formato correcto, en el topic específico.
+Además, se encuentra resguardada, gracias a que el broker define para su conexion un usuario y contraseña, y un usuario de conexión creado en la DB que carece de perfil de administrador.
 
 ### 🧰 Tecnologías
 - Cliente MQTT
 - Docker-compose para su despliegue
 - Body-parser con mapeo de datos
-- Suscripcion a multiples dashboards
-- Conexión a MariaDB, con healt check, y reconeccion en caso de perdida
+- Suscripción a múltiples dashboards
+- Conexión a MariaDB, con healt check, y reconexión en caso de pérdida.
 
 ---
 
 ## 🌐 9 - DISEÑO 3D DE LOS MODULOS VERTICALES
 
-Se diseñaron e imprimieron modulos utilizando tecnologia de impresion 3D, que mejoran la disposicion de los actuadores, resguado del microcontrolador, y hasta disposicion de las tuberias que facilitan el pase de cableado a lo lardo de la torre hidroponica
+Se diseñaron e imprimieron modulos utilizando tecnologia de impresion 3D, que mejorán la disposición de los actuadores, resguado del microcontrolador, y hasta disposición de las tuberías que facilitan el pase de cableado a lo lardo de la torre hidropónica.
 
 **Diseñor y Desarrollo**
 [modelos_3D_para_imprimir](.//C-prototipos/modelos_3D_para_imprimir/)
