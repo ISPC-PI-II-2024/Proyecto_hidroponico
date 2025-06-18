@@ -177,6 +177,9 @@ cd Proyecto_hidroponico
 
 **🧭 3 - Arquitectura del sistema**
 
+<p align="center">
+  <img src="/E-Assets/arquitectura_de_red.png" width="700" alt="ArquitecturaRed"/>
+</p>
 
 **🔗 Descripción de componentes**
 
@@ -269,7 +272,6 @@ Grafana permite construir dashboards con paneles que muestran en tiempo real o h
   <img src="/E-Assets/grafana.png" width="700" alt="Grafana"/>
 </p>
 
----
 ---
 
 ## 📊  5B - Automatización con Node-RED
