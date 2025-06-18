@@ -126,7 +126,7 @@ El proyecto fue elegido por su aplicabilidad práctica, potencial de escalabilid
 ### 🧑‍💻 Accesos a entorno
 
 <p align="center">
-  <img src="/E-Assets/portainer.png" width="200" alt="Portainer logo"/>
+  <img src="/E-Assets/portainer.png" width="700" alt="Portainer logo"/>
 </p>
 
 - [Node-RED](http://telecomunicaciones.ddns.net:8080/nodered/)
@@ -266,7 +266,7 @@ http://telecomunicaciones.ddns.net:8080/grafana/
 
 
 <p align="center">
-  <img src="/E-Assets/grafana.png" width="500" alt="Grafana"/>
+  <img src="/E-Assets/grafana.png" width="700" alt="Grafana"/>
 </p>
 
 ## 📊  5B - Automatización con Node-RED
@@ -390,8 +390,8 @@ Se diseñaron e imprimieron modulos utilizando tecnologia de impresion 3D, que m
 
 
 <p align="center">
-  <img src="/E-Assets/diseño3d-back.png" width="300" alt="Diseño 3D Back"/>
-  <img src="/E-Assets/diseño3d-front.png" width="300" alt="Diseño 3D Front"/>
+  <img src="/E-Assets/diseño3d-back.png" width="300" height="300" alt="Diseño 3D Back"/>
+  <img src="/E-Assets/diseño3d-front.png" width="300" height="300" alt="Diseño 3D Front"/>
 </p>
 
 ---
