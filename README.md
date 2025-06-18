@@ -261,8 +261,8 @@ Grafana permite construir dashboards con paneles que muestran en tiempo real o h
 **🔄 Fuentes de datos**
 - MariaDB integrada como data source.
 
-**🌐 Acceso**
-http://telecomunicaciones.ddns.net:8080/grafana/
+**🌐 Acceso Público**
+[CLICK AQUI](http://telecomunicaciones.ddns.net:8080/grafana/public-dashboards/855dc3a2826f476db1800452849f3251)
 
 
 <p align="center">
