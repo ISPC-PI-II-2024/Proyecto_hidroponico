@@ -294,8 +294,10 @@ Node-RED permite crear flujos lógicos para procesar, transformar y reenviar dat
 
 **🔐 Seguridad**
 
-El acceso a Node-RED está protegido con usuario y contraseña.
+  #### **Los accesos a las consolas de configuracion de las aplicaciones de visualizacion como Node-RED y Grafana, montadas en el servidor privado, están protegidos con usuario y contraseña.**
+  #### **Se reserva el uso solo a personal autorizado.**
 
+---
 ---
 
 ## 🗃️ 6 - Base de datos MariaDB
