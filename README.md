@@ -267,7 +267,7 @@ http://telecomunicaciones.ddns.net:8080/grafana/
 
 
 <p align="center">
-  <img src="/E-Assets/grafana.png" width="200" alt="Grafana"/>
+  <img src="/E-Assets/grafana.png" width="500" alt="Grafana"/>
 </p>
 
 ## 📊  5B - Automatización con Node-RED
@@ -283,7 +283,7 @@ Node-RED permite crear flujos lógicos para procesar, transformar y reenviar dat
 **🌐 Flujos visuales**
 
 <p align="center">
-  <img src="/E-Assets/.png" width="200" alt="Node-RED"/>
+  <img src="/E-Assets/.png" width="500" alt="Node-RED"/>
 </p>
 
 **🔐 Seguridad**
@@ -391,13 +391,9 @@ Se diseñaron e imprimieron modulos utilizando tecnologia de impresion 3D, que m
 
 
 <p align="center">
-  <img src="/E-Assets/diseño3d-back.png" width="200" alt="Diseño 3D Back"/>
+  <img src="/E-Assets/diseño3d-back.png" width="300" alt="Diseño 3D Back"/>
+  <img src="/E-Assets/diseño3d-front.png" width="300" alt="Diseño 3D Front"/>
 </p>
-
-<p align="center">
-  <img src="/E-Assets/diseño3d-front.png" width="200" alt="Diseño 3D Front"/>
-</p>
-
 
 ---
 
