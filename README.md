@@ -51,11 +51,11 @@ La agricultura urbana enfrenta limitaciones en el acceso a tierra fértil y agua
 
 ### EJES TEMÁTICOS/RED DE CONCEPTOS:
 
-● Internet de las Cosas (IoT).
-● Sistemas embebidos y sensores ambientales.
-● Protocolos de comunicación (MQTT).
-● Bases de datos y almacenamiento en la nube.
-● Visualización de datos (Grafana, Node-RED).
+- Internet de las Cosas (IoT).
+- Sistemas embebidos y sensores ambientales.
+- Protocolos de comunicación (MQTT).
+- Bases de datos y almacenamiento en la nube.
+- Visualización de datos (Grafana, Node-RED).
 
 Se busca fortalecer la capacidad de integración de tecnologías en soluciones reales, así como la habilidad para diseñar sistemas conectados y sostenibles con impacto social. 
 
@@ -67,7 +67,7 @@ El proyecto fue elegido por su aplicabilidad práctica, potencial de escalabilid
 
 ---
 
-### 🧰 STACK TECNOLOGICO
+### STACK TECNOLOGICO
 
 - ESP32 + sensores físicos
 - Node-RED
@@ -84,13 +84,22 @@ El proyecto fue elegido por su aplicabilidad práctica, potencial de escalabilid
 ### 📂 Organización
 
 ```
-📁 /A-Requisitos         → los requisitos del proyecto  
-📁 /B-Investigacion      → Archivos de investigacion, procedimientos, apuntes, datasheets 
-📁 /C-Prototipos         → Prototipos, pruebas unitarios, integraciones, etc 
-📁 /D-Presentacion       → Documentacion de presentacion, videos, diapositivas, manuales de uso
-📁 /E-assets             → Imágenes, logo, multimedia  
-📄 README.md             → Este archivo  
-📄 LICENSE               → Licencia del proyecto
+📁 /A-Requisitos                  → los requisitos del proyecto  
+📁 /B-Investigacion               → Archivos de investigacion, procedimientos, apuntes, datasheets
+    ┣ 📂Documentación
+    ┣ 📂Información Técnica
+    ┃ ┗ 📂datasheets
+    ┣ 📂Integracion ..
+📁 /C-Prototipos                  → Prototipos, pruebas unitarios, integraciones, etc 
+    ┣ 📂Backend-APP
+    ┣ 📂base de datos
+    ┣ 📂Integrado V2
+    ┣ 📂modelos_3D_para_imprimir
+    ┣ 📂Pruebas_Unitarias
+📁 /D-Presentacion                → Documentacion de presentacion, videos, diapositivas, manuales de uso
+📁 /E-assets                      → Imágenes, logo, multimedia  
+📄 README.md                      → Este archivo  
+📄 LICENSE                        → Licencia del proyecto
 ```
 
 ### 🚀 Objetivos
@@ -133,7 +142,7 @@ El proyecto fue elegido por su aplicabilidad práctica, potencial de escalabilid
 
 # 📘 1 - Introducción
 
-El presente proyecto tiene como finalidad diseñar e implementar un sistema IoT para el monitoreo y control de un cultivo hidropónico. El enfoque está basado en el Aprendizaje Basado en Proyectos (ABP) integrando conocimientos adquiridos en distintas materias técnicas de segundo año.
+El presente proyecto tiene como finalidad diseñar e implementar un sistema IoT para el monitoreo y control de un cultivo hidropónico. El enfoque está basado en el Aprendizaje Basado en Proyectos (ABP) integrando conocimientos adquiridos en distintas materias técnicas de segundo año
 
 ### 🧠 Justificación
 
@@ -144,30 +153,32 @@ El presente proyecto tiene como finalidad diseñar e implementar un sistema IoT 
 ### 🎯 Objetivos
 
 - Recolectar datos ambientales (humedad, pH, temperatura).
+- Recolectar datos internos del sistema.
 - Visualizar y analizar datos con dashboards.
-- Aplicar control remoto mediante reglas automáticas.
+- Aplicar control remoto mediante reglas automáticas, o interaccion remota y manual
 - Documentar el desarrollo siguiendo buenas prácticas de software.
 
 ---
 
-# ⚙️ 2 - Instalación del entorno
+### ⚙️ 2 - Instalación del entorno
 
-### 📦 Requisitos previos
+**📦 Requisitos previos**
 - Docker Desktop o Docker Engine
 - Git
 
-### 🔁 Clonar el repositorio
+**🔁 Clonar el repositorio**
 
 git clone https://github.com/ISPC-PI-II-2024/Proyecto_hidroponico.git
 cd Proyecto_hidroponico
 
-#### 📄 3 - Arquitectura
+---
 
-# 🧭 3 - Arquitectura del sistema
+### 📄 3 - Arquitectura
 
-### 🌐 Diagrama general
+**🧭 3 - Arquitectura del sistema**
 
-### 🔗 Descripción de componentes
+
+**🔗 Descripción de componentes**
 
 - **ESP32**: Captura datos de sensores.
 - **Mosquitto**: Transmite los datos por MQTT.
@@ -177,7 +188,35 @@ cd Proyecto_hidroponico
 
 ---
 
-## 🔄 4 - Automatización con Node-RED
+## 4 - Dispositivo Fisico (Microcontrolador + Sistemas de sensores/actuadores)
+
+
+
+---
+
+## 📊 5A - Visualización con Grafana
+
+Grafana permite construir dashboards con paneles que muestran en tiempo real o históricamente los datos del sistema hidropónico.
+
+**🧩 Paneles incluidos**
+- Temperatura del ambiente.
+- Humedad del sustrato.
+- Niveles de pH.
+- Estado de los actuadores
+- Niveles generales de lectura de cada sensor
+
+**🔄 Fuentes de datos**
+- MariaDB integrada como data source.
+
+**🌐 Acceso**
+http://telecomunicaciones.ddns.net:8080/grafana/
+
+
+<p align="center">
+  <img src="/E-Assets/grafana.png" width="200" alt="Grafana"/>
+</p>
+
+## 📊  5B - Automatización con Node-RED
 
 Node-RED permite crear flujos lógicos para procesar, transformar y reenviar datos provenientes de sensores conectados vía MQTT.
 
@@ -199,37 +238,34 @@ El acceso a Node-RED está protegido con usuario y contraseña.
 
 ---
 
-## 📊 5 - Visualización con Grafana
-
-Grafana permite construir dashboards con paneles que muestran en tiempo real o históricamente los datos del sistema hidropónico.
-
-**🧩 Paneles incluidos**
-- Temperatura del ambiente.
-- Humedad del sustrato.
-- Niveles de pH.
-- Estado de los actuadores
-- 
-
-**🔄 Fuentes de datos**
-- MariaDB integrada como data source.
-
-**🌐 Acceso**
-http://telecomunicaciones.ddns.net:8080/grafana/
-
-
-<p align="center">
-  <img src="/E-Assets/.png" width="200" alt="Grafana"/>
-</p>
-
----
-
-# 🗃️ 6 - Base de datos MariaDB
+## 🗃️ 6 - Base de datos MariaDB
 
 MariaDB almacena los datos recolectados desde los sensores y enviados por Node-RED.
 
 ### 🧱 Estructura
-- `lecturas` (id, tipo_sensor, valor, timestamp)
-- `alertas` (id, tipo, descripcion, timestamp)
+1. **sistemas**
+   - Representa cada instalación física del sistema hidropónico.
+   - Un sistema puede tener múltiples sensores y actuadores.
+
+2. **sensores**
+   - Representa los sensores físicos instalados (ej: temperatura, humedad, pH).
+   - Cada sensor está vinculado a un sistema y tiene un tipo, modelo, pin de entrada, etc.
+
+3. **lecturas**
+   - Almacena cada lectura generada por un sensor en una fecha y hora determinada.
+   - Está directamente relacionada con un sensor.
+
+4. **actuadores**
+   - Representa los dispositivos controlables (bombas, luces, ventiladores, etc.).
+   - Cada actuador está conectado a un sistema y tiene un estado actual (`ON` o `OFF`).
+
+5. **eventos_control**
+   - Registra los eventos donde un actuador fue activado o desactivado.
+   - Puede incluir el nombre de la persona que realizó la acción (campo opcional `nombre_usuario`), aunque no se requiere autenticación.
+
+6. **umbrales** 
+   - Define los valores mínimos y máximos aceptables para ciertos tipos de sensores.
+   - Permite generar alertas cuando una lectura está fuera de rango.
 
 ### 🔌 Conexión
 - Host: `telecomunicaciones.ddns.net`
@@ -237,11 +273,11 @@ MariaDB almacena los datos recolectados desde los sensores y enviados por Node-R
 - Usuario: `telecomunicaciones`
 - Contraseña: `cohorte*2024`
 
-Acceso a través de gestores como MariaDB o MySQL Workbench.
+Acceso a través de gestores como MariaDB o MySQL Workbench, o mediante cualquier SGBD
 
 ---
 
-# 📡 7 - Broker MQTT (Mosquitto)
+## 📡 7 - Broker MQTT (Privado, utilizando imagen de Mosquitto)
 
 El broker MQTT se usa para recibir datos desde sensores IoT.
 
@@ -252,38 +288,62 @@ El broker MQTT se usa para recibir datos desde sensores IoT.
 - Contraseña: `cohorte*2024`
 
 ### 📫 Topics utilizados
-- `hidroponico/temperatura`
-- `hidroponico/humedad`
-- `hidroponico/ph`
+- `dispositivo/datos`
+- `dispositivo/info`
+- `hidroponico/control`
 
 ### 🧪 Pruebas
 Podés usar MQTT Explorer para conectar y verificar los tópicos activos.
+Se desarrollaron 3 aplicaciones simple que emulan datos, y envian informacion a los mismos topicos a fin de afinar el parseo, registro y visualizacion de la informacion.
+- [SimuladorCreacionDIspositivos.py](.//C-prototipos/Backend_APP/SimuladorCreacionDIspositivos.py)
+- [SimuladorIngresoEspecifico.py](.//C-prototipos/Backend_APP/SimuladorIngresoEspecifico.py)
+- [SimuladorLecturas.py](.//C-prototipos/Backend_APP/SimuladorLecturas.py)
 
 --- 
 
-# 🌐 8 - API REST
+## 🌐 8 - API REST
 
-Se desarrolló una API RESTful en Node.js utilizando Express para acceder a los datos del sistema.
+Se desarrolló una API tipo FastAPI, con cliente MQTT, 
 
 ### 📂 Ubicación en el repositorio
-`/api`
+`/Backend_APP`
 
 ### 🧪 Endpoints principales
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| GET | `/api/lecturas` | Obtener todas las lecturas |
-| GET | `/api/lecturas/:id` | Obtener una lectura específica |
-| POST | `/api/lecturas` | Agregar una nueva lectura |
-| DELETE | `/api/lecturas/:id` | Eliminar una lectura |
+| GET | `/topic` | Obtener todas las segun el topico indicado/s en el .env |
+| GET | `/message` | Obtener una lectura específica, segun el formato del mensaje |
 
 ### 🔐 Seguridad
-Actualmente sin autenticación, se recomienda añadir JWT o middleware de acceso en producción.
+Actualmente sin autenticación, se podrian añadir JWT o middleware de acceso en producción mas complejo o con alguna medida que sume a la seguridad..
+Igualmente la API no tiene definido funciones para realizar consultas a la base de datos, unicamente para registrar cuando se cumple el formato correcto, en el topic especifico
+Ademas, se encuentra resguardada, gracias a que el broker define para su conexion un usuario y contraseña, y un usuario de conexion creado en la DB que carece de perfil de administrador
 
 ### 🧰 Tecnologías
-- Node.js
-- Express
-- Body-parser
-- Conexión a MariaDB
+- Cliente MQTT
+- Docker-compose para su despliegue
+- Body-parser con mapeo de datos
+- Suscripcion a multiples dashboards
+- Conexión a MariaDB, con healt check, y reconeccion en caso de perdida
+
+---
+
+## 🌐 9 - DISEÑO 3D DE LOS MODULOS VERTICALES
+
+Se diseñaron e imprimieron modulos utilizando tecnologia de impresion 3D, que mejoran la disposicion de los actuadores, resguado del microcontrolador, y hasta disposicion de las tuberias que facilitan el pase de cableado a lo lardo de la torre hidroponica
+
+**Diseñor y Desarrollo**
+[modelos_3D_para_imprimir](.//C-prototipos/modelos_3D_para_imprimir/)
+
+
+<p align="center">
+  <img src="/E-Assets/diseño3d-back.png" width="200" alt="Diseño 3D Back"/>
+</p>
+
+<p align="center">
+  <img src="/E-Assets/diseño3d-front.png" width="200" alt="Diseño 3D Front"/>
+</p>
+
 
 ---
 
