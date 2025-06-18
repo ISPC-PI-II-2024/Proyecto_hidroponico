@@ -352,7 +352,7 @@ El broker MQTT se usa para recibir datos desde sensores IoT.
 - Contraseña: `cohorte*2024`
 
 ### 📫 Topics utilizados
-- `dispositivo/datos`
+- `sensores/datos`
 - `dispositivo/info`
 - `hidroponico/control`
 
