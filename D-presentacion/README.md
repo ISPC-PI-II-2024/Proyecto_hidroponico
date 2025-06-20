@@ -22,25 +22,25 @@ El objetivo es construir una solución inteligente, ecológica y accesible que c
 
 ## 🧑‍💻 Integrantes
 
-| Nombre                        | GitHub                                 |
-|------------------------------|----------------------------------------|
-| Romina Vanesa Huk            | [@RoHu17](https://github.com/RoHu17) |
-| Emma Vilma Gutierrez         | [@emygut](https://github.com/emygut) |
-| Macarena Aylèn Carballo      | [@MacarenaAC](https://github.com/MacarenaAC) |
-| Jose Luis Marquez            | [@marquezjose](https://github.com/marquezjose) |
-| Fernando Gimenez Coria       | [@FerCbr](https://github.com/FerCbr) |
-| Nahuel Lucas Velez           | [@Lucasmurua19](https://github.com/Lucasmurua19) |
-| Juan Diego Gonzalez Antoniazzi | [@JDGA1997](https://github.com/JDGA1997) |
-| Lisandro Juncos Varalda      | [@Lisandro-05](https://github.com/Lisandro-05) |
-| Joaquin Emiliano Garzón      | [@Joacogarzonn](https://github.com/Joacogarzonn) |
-| Vittorio Durigutti           | [@vittoriodurigutti](https://github.com/vittoriodurigutti) |
-| Leandro Roldan               | [@pleroldan](https://github.com/pleroldan) |
-| Luciano Lujan                | [@lucianoilujan](https://github.com/lucianoilujan) |
-| Tiziano Paez                 | [@tpaez](https://github.com/tpaez) |
-| Raul Jara                    | [@r-j28](https://github.com/r-j28) |
-| Joaquin Zalazar              | [@breaakerr](https://github.com/breaakerr) |
-| Diego Ares                   | [@diegote7](https://github.com/diegote7) |
-| Paola Pantoja                | [@PaolaaPantoja](https://github.com/PaolaaPantoja) |
+| Nombre                          | GitHub                                                    |
+|---------------------------------|-----------------------------------------------------------|
+| Romina Vanesa Huk               | [@RoHu17](https://github.com/RoHu17)                      |
+| Emma Vilma Gutierrez            | [@emygut](https://github.com/emygut)                      |
+| Macarena Aylèn Carballo         | [@MacarenaAC](https://github.com/MacarenaAC)              |
+| Jose Luis Marquez               | [@marquezjose](https://github.com/marquezjose)            |
+| Fernando Gimenez Coria          | [@FerCbr](https://github.com/FerCbr)                      |
+| Nahuel Lucas Velez              | [@Lucasmurua19](https://github.com/Lucasmurua19)          |
+| Juan Diego Gonzalez Antoniazzi  | [@JDGA1997](https://github.com/JDGA1997)                  |
+| Lisandro Juncos Varalda         | [@Lisandro-05](https://github.com/Lisandro-05)            |
+| Joaquin Emiliano Garzón         | [@Joacogarzonn](https://github.com/Joacogarzonn)          |
+| Vittorio Durigutti              | [@vittoriodurigutti](https://github.com/vittoriodurigutti)|
+| Leandro Roldan                  | [@pleroldan](https://github.com/pleroldan)                |
+| Luciano Lujan                   | [@lucianoilujan](https://github.com/lucianoilujan)        |
+| Tiziano Paez                    | [@tpaez](https://github.com/tpaez)                        |
+| Raul Jara                       | [@r-j28](https://github.com/r-j28)                        | 
+| Joaquin Zalazar                 | [@breaakerr](https://github.com/breaakerr)                |
+| Diego Ares                      | [@diegote7](https://github.com/diegote7)                  |
+| Paola Pantoja                   | [@PaolaaPantoja](https://github.com/PaolaaPantoja)        |
 
 ---
 
