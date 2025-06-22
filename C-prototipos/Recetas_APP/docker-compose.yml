@@ -1,0 +1,11 @@
+services:
+  hidroponia-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend_app_hidroponia
+    env_file:
+      - .env
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    restart: unless-stopped
